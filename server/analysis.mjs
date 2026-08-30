@@ -216,6 +216,64 @@ function normalizeProductExperience(value = {}, validEvidenceIds, audit) {
       metric: safeText(event?.metric, "待定义"),
       decision: safeText(event?.decision, "待定义"),
     })).slice(0, 12),
+    scenarioValue: {
+      bestScene: safeText(item?.scenarioValue?.bestScene, "待验证"),
+      summary: safeText(item?.scenarioValue?.summary, "待验证"),
+      scenarios: safeArray(item?.scenarioValue?.scenarios).map((scenario, index) => ({
+        name: safeText(scenario?.name, `场景 ${index + 1}`),
+        fit: clamp(Number(scenario?.fit) || 3, 1, 5),
+        work: safeText(scenario?.work, "待验证"),
+        why: safeText(scenario?.why, "待验证"),
+        evidenceScreen: safeText(scenario?.evidenceScreen, "缺少界面证据"),
+        limitation: safeText(scenario?.limitation, "待验证"),
+      })).slice(0, 6),
+    },
+    usabilityScore: {
+      total: clamp(Number(item?.usabilityScore?.total) || 0, 0, 5),
+      scale: safeText(item?.usabilityScore?.scale, "5 分代表更容易上手、使用成本更低"),
+      confidence: {
+        level: safeText(item?.usabilityScore?.confidence?.level, "低"),
+        covered: Math.max(0, Number(item?.usabilityScore?.confidence?.covered) || 0),
+        note: safeText(item?.usabilityScore?.confidence?.note, "证据覆盖不足"),
+      },
+      verdict: safeText(item?.usabilityScore?.verdict, "待验证"),
+      dimensions: safeArray(item?.usabilityScore?.dimensions).map((dimension, index) => ({
+        key: safeText(dimension?.key, `dimension_${index + 1}`),
+        label: safeText(dimension?.label, `维度 ${index + 1}`),
+        score: clamp(Number(dimension?.score) || 3, 1, 5),
+        reason: safeText(dimension?.reason, "待验证"),
+        evidenceScreen: safeText(dimension?.evidenceScreen, "缺少界面证据"),
+      })).slice(0, 8),
+      easyPoints: textList(item?.usabilityScore?.easyPoints, 8),
+      complexityDrivers: textList(item?.usabilityScore?.complexityDrivers, 8),
+    },
+    dataModel: {
+      principles: textList(item?.dataModel?.principles),
+      entities: safeArray(item?.dataModel?.entities).map((entity, index) => ({
+        name: safeText(entity?.name, `entity_${index + 1}`),
+        purpose: safeText(entity?.purpose, "待定义"),
+        keyFields: textList(entity?.keyFields, 10),
+        relations: textList(entity?.relations, 8),
+        retention: safeText(entity?.retention, "待定义"),
+      })).slice(0, 16),
+    },
+    backendDelivery: {
+      summary: safeText(item?.backendDelivery?.summary),
+      userStories: textList(item?.backendDelivery?.userStories, 8),
+      apis: safeArray(item?.backendDelivery?.apis).map((api, index) => ({
+        method: safeText(api?.method, "POST").toUpperCase(),
+        path: safeText(api?.path, `/api/resource_${index + 1}`),
+        purpose: safeText(api?.purpose, "待定义"),
+        payload: safeText(api?.payload, "待定义"),
+      })).slice(0, 10),
+      jobs: safeArray(item?.backendDelivery?.jobs).map((job, index) => ({
+        name: safeText(job?.name, `job_${index + 1}`),
+        trigger: safeText(job?.trigger, "待定义"),
+        writes: safeText(job?.writes, "待定义"),
+      })).slice(0, 8),
+      permissions: textList(item?.backendDelivery?.permissions, 8),
+      acceptance: textList(item?.backendDelivery?.acceptance, 8),
+    },
     fiveLayers: normalizeFiveLayers(item?.fiveLayers),
   })).slice(0, 8);
   const comparisonCells = safeArray(value?.comparison?.cells).map((item) => ({

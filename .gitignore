@@ -4,6 +4,7 @@
 node_modules/
 output/
 tmp/
+tmp-ppt-render*/
 *.log
 报告下载/*
 !报告下载/.gitkeep

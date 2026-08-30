@@ -465,8 +465,9 @@ function renumberSlideChrome(slideProto, pageNumber) {
 
 function reorderPresentation(deck, indexes) {
   const proto = deck.toProto();
-  const selected = indexes.map((index) => proto.slides[index]).filter(Boolean);
-  if (selected.length !== proto.slides.length) return deck;
+  const uniqueIndexes = [...new Set(indexes)].filter((index) => Number.isInteger(index) && index >= 0 && index < proto.slides.length);
+  const selected = uniqueIndexes.map((index) => proto.slides[index]).filter(Boolean);
+  if (!selected.length) return deck;
   selected.forEach((slide, index) => {
     slide.index = index;
     renumberSlideChrome(slide, index + 1);
@@ -1291,13 +1292,13 @@ export async function buildPptx(rawAnalysis) {
   {
     const slide = deck.slides.add();
     slide.background.fill = C.ink;
-    addText(slide, "PRODUCT INVESTMENT BRIEF", { left: 72, top: 70, width: 460, height: 30 }, {
+    addText(slide, "PRODUCT EXPERIENCE & COMPETITIVE ANALYSIS", { left: 72, top: 70, width: 560, height: 30 }, {
       fontSize: 16, color: C.lime, bold: true,
     });
-    addText(slide, `${focus.name || a.meta.product} 企业 Agent 立项分析`, { left: 72, top: 184, width: 860, height: 92 }, {
+    addFittedText(slide, a.meta.title || `${focus.name || a.meta.product} 竞品与产品体验分析`, { left: 72, top: 174, width: 860, height: 108 }, {
       fontSize: 56, color: C.white, bold: true, wrap: "none",
     });
-    addFittedText(slide, "从用户需求、真实场景、服务门槛到开发成本与商业回报", { left: 72, top: 300, width: 820, height: 62 }, {
+    addFittedText(slide, "从真实使用界面、任务过程和失败恢复判断产品机会", { left: 72, top: 300, width: 820, height: 62 }, {
       fontSize: 28, minFontSize: 24, color: "#D8E5DF", maxLines: 2,
     });
     addRect(slide, { left: 980, top: 160, width: 190, height: 360 }, C.accent, "rounded-2xl");
@@ -1310,8 +1311,8 @@ export async function buildPptx(rawAnalysis) {
     addFittedText(slide, a.meta.decisionQuestion, { left: 98, top: 546, width: 760, height: 28 }, { fontSize: 23, minFontSize: 20, color: C.white, bold: true, maxLines: 1 });
     addText(slide, `${a.meta.date}  |  ${a.meta.audience}  |  联网调研 ${a.research.searchCalls || 0} 次`, { left: 72, top: 648, width: 720, height: 24 }, { fontSize: 16, color: "#AABCB4" });
     addNotes(slide, [
-      "这是一份立项决策材料，不是功能目录。",
-      "全篇围绕是否投入企业 Agent 平台、投入多少、如何验证回报展开。",
+      "这是一份基于真实使用界面的竞品分析，不是官网功能目录。",
+      "全篇围绕用户怎样完成任务、哪里会卡住，以及这些差异怎样影响投入决策展开。",
     ], sourceSubset(a));
   }
 
@@ -1319,32 +1320,24 @@ export async function buildPptx(rawAnalysis) {
   {
     const slide = deck.slides.add();
     slide.background.fill = C.paper;
-    addSlideChrome(slide, "Investment thesis", 2);
-    addTitle(slide, "个人规模只是入口，企业交付才是收入引擎", "先把高频个人任务转成组织级协作、治理与付费能力");
+    addSlideChrome(slide, "Executive conclusion", 2);
+    addTitle(slide, a.executiveSummary?.verdict || `${focus.name}的机会来自真实任务闭环，而不是功能数量`, a.executiveSummary?.headline || "后续页面用真实使用过程逐项验证这条结论");
     addRect(slide, { left: 72, top: 228, width: 706, height: 392 }, C.white, "rounded-2xl", C.line);
     addText(slide, "为什么现在值得投入", { left: 104, top: 254, width: 300, height: 34 }, { fontSize: 24, bold: true });
-    const thesisEvidence = [
-      ["规模", short(focus.strengths?.[0], 46, "个人端已形成规模入口")],
-      ["生态", short(focus.strengths?.[1], 46, "办公生态可降低企业接入成本")],
-      ["收入", short(a.economics.arpu, 46, "企业坐席与任务计量具备收费基础")],
-      ["风险", short(focus.weaknesses?.[0], 46, "付费转化与交付稳定性仍需验证")],
-    ];
+    const summaryInsights = asList(a.executiveSummary?.insights, "需要继续从真实使用过程验证差异");
+    const thesisEvidence = summaryInsights.slice(0, 4).map((value, index) => [["发现", "差异", "机会", "风险"][index], short(value, 54)]);
     thesisEvidence.forEach(([label, value], index) => {
       const top = 306 + index * 70;
       addText(slide, label, { left: 104, top, width: 78, height: 28 }, { fontSize: 18, color: index === 3 ? C.accent : C.mint, bold: true });
       addFittedText(slide, value, { left: 196, top, width: 534, height: 48 }, { fontSize: 18, minFontSize: 16, maxLines: 2, bold: index === 2 });
     });
     addRect(slide, { left: 820, top: 228, width: 388, height: 392 }, C.ink, "rounded-2xl");
-    addText(slide, "投资主张", { left: 858, top: 258, width: 180, height: 34 }, { fontSize: 24, color: C.lime, bold: true });
-    addFittedText(slide, "把个人工具升级为可治理、可计费、可复制的团队 Agent 平台", { left: 858, top: 318, width: 310, height: 108 }, { fontSize: 29, minFontSize: 24, color: C.white, bold: true, maxLines: 4 });
-    addFittedList(slide, [
-      "企业协作与权限治理先行",
-      "任务结果数据反哺模型与技能",
-      "智能路由守住单位任务毛利",
-    ], { left: 858, top: 458, width: 310, height: 126 }, { fontSize: 18, minFontSize: 16, maxItems: 3, color: C.white, numberColor: C.lime });
+    addText(slide, "下一步", { left: 858, top: 258, width: 180, height: 34 }, { fontSize: 24, color: C.lime, bold: true });
+    addFittedText(slide, short(a.executiveSummary?.verdict, 72, "先补齐真实任务闭环，再验证收费"), { left: 858, top: 318, width: 310, height: 108 }, { fontSize: 27, minFontSize: 22, color: C.white, bold: true, maxLines: 4 });
+    addFittedList(slide, asList(a.executiveSummary?.actions, "补齐关键使用过程").slice(0, 3), { left: 858, top: 458, width: 310, height: 126 }, { fontSize: 18, minFontSize: 16, maxItems: 3, color: C.white, numberColor: C.lime });
     addNotes(slide, [
-      "规模、生态和定价给出投入理由，付费转化和稳定性决定验证顺序。",
-      "核心结论是企业平台化，而不是继续扩大个人端功能宽度。",
+      "本页只保留调研已经得到的结论、证据和下一步，不额外套入通用投资话术。",
+      "后续页面用真实界面验证这些判断。",
     ], sourceSubset(a));
   }
 
@@ -1382,7 +1375,7 @@ export async function buildPptx(rawAnalysis) {
     const slide = deck.slides.add();
     slide.background.fill = C.paper;
     addSlideChrome(slide, "Actual scenarios", 4);
-    addTitle(slide, "高频价值集中在报告、数据和远程执行", "每个场景都必须有明确触发、执行链、产物和验收线");
+    addTitle(slide, `最值得验证的三类工作：${scenarios.map((item) => item.name).join("、") || "报告、研究与知识管理"}`, "每个场景都说清楚：用户为什么开始、让产品做什么、最后拿到什么");
     const headers = ["场景与触发", "实际执行功能", "交付结果", "最低验收线"];
     const widths = [240, 390, 286, 220];
     let hx = 72;
@@ -1391,22 +1384,15 @@ export async function buildPptx(rawAnalysis) {
       addText(slide, header, { left: hx + 14, top: 234, width: widths[index] - 28, height: 24 }, { fontSize: 17, color: C.white, bold: true });
       hx += widths[index];
     });
-    const functionChains = [
-      "读取本地与腾讯文档 → 汇总 → 生成 Word → 微信或企微分享",
-      "联网检索 → 生成大纲 → 输出 PPTX → 在线预览和修改",
-      "读取 CSV/Excel → 清洗 → 分析 → 图表与结论回写",
-      "微信小程序或 IM 派活 → 桌面执行 → 手机验收 → 状态推送",
-    ];
-    const acceptance = ["内容完整；可编辑；准时生成", "引用可追溯；版式可编辑；无错位", "数据不出本地；结果可复核", "远程可见；失败可恢复；结果可确认"];
     const rows = scenarios.length ? scenarios : [{ name: "待补充", trigger: "待验证", task: "待验证", outcome: "待验证" }];
     rows.forEach((item, rowIndex) => {
       const top = 268 + rowIndex * 82;
       const fill = rowIndex % 2 ? C.paper : C.white;
       const values = [
         `${item.name}\n${short(item.trigger, 20)}`,
-        functionChains[rowIndex] || short(item.task, 52),
+        short(item.task, 52),
         short(item.outcome, 40),
-        acceptance[rowIndex] || "任务完成、结果可编辑、失败可归因",
+        `结果符合「${short(item.outcome, 24)}」；过程可查看，失败可继续`,
       ];
       let x = 72;
       values.forEach((value, index) => {
@@ -1880,30 +1866,31 @@ export async function buildPptx(rawAnalysis) {
     const slide = deck.slides.add();
     slide.background.fill = C.paper;
     addSlideChrome(slide, "UI focus comparison", 18);
-    addTitle(slide, "每个产品押注的设置不同，不要做成同一张功能清单", "横向对比入口、编排、恢复和交付，找出真正的侧重点");
+    addTitle(slide, "同一件工作，三个产品让用户走了三条不同的路", "比较从哪里开始、怎么做、怎样知道进度、卡住后怎么办，以及最后怎样拿到结果");
     const comparison = a.productExperience?.comparison || {};
     const products = [...new Set((comparison.cells || []).map((item) => item.product))].slice(0, 4);
-    const dimensions = (comparison.dimensions || []).slice(0, 4);
+    const dimensions = (comparison.dimensions || []).slice(0, 6);
     const cellMap = new Map((comparison.cells || []).map((item) => [`${item.dimension}::${item.product}`, item]));
     const names = products.length ? products : firstCompetitors.map((item) => item.name);
-    const dims = dimensions.length ? dimensions : ["入口与信息架构", "任务编排", "状态与失败恢复", "结果交付与治理"];
+    const dims = dimensions.length ? dimensions : ["入口对象", "发起与配置", "执行反馈", "失败恢复", "结果交付", "权限治理"];
     const colW = Math.min(240, Math.floor(900 / Math.max(1, names.length)));
-    addRect(slide, { left: 72, top: 222, width: 1136, height: 400 }, C.white, "rounded-xl", C.line);
-    addRect(slide, { left: 72, top: 222, width: 220, height: 54 }, C.ink, "none");
-    addText(slide, "比较维度", { left: 88, top: 238, width: 188, height: 24 }, { fontSize: 16, color: C.white, bold: true });
+    const rowH = 60;
+    addRect(slide, { left: 72, top: 210, width: 1136, height: 48 + dims.length * rowH }, C.white, "rounded-xl", C.line);
+    addRect(slide, { left: 72, top: 210, width: 220, height: 48 }, C.ink, "none");
+    addText(slide, "用户任务", { left: 88, top: 223, width: 188, height: 24 }, { fontSize: 16, color: C.white, bold: true });
     names.forEach((name, index) => {
-      addRect(slide, { left: 292 + index * colW, top: 222, width: colW, height: 54 }, index % 2 ? C.mint : C.accent, "none");
-      addFittedText(slide, short(name, 16), { left: 300 + index * colW, top: 236, width: colW - 16, height: 28 }, { fontSize: 16, minFontSize: 14, color: C.white, bold: true, maxLines: 1, alignment: "center" });
+      addRect(slide, { left: 292 + index * colW, top: 210, width: colW, height: 48 }, index % 2 ? C.mint : C.accent, "none");
+      addFittedText(slide, short(name, 16), { left: 300 + index * colW, top: 222, width: colW - 16, height: 24 }, { fontSize: 16, minFontSize: 14, color: C.white, bold: true, maxLines: 1, alignment: "center" });
     });
     dims.forEach((dimension, row) => {
-      const top = 276 + row * 86;
-      addText(slide, short(dimension, 14), { left: 88, top: top + 28, width: 188, height: 36 }, { fontSize: 16, color: C.mint, bold: true, maxLines: 2 });
+      const top = 258 + row * rowH;
+      addFittedText(slide, short(dimension, 14), { left: 88, top: top + 15, width: 188, height: 30 }, { fontSize: 16, minFontSize: 14, color: C.mint, bold: true, maxLines: 2 });
       names.forEach((name, index) => {
         const cell = cellMap.get(`${dimension}::${name}`) || {};
-        addFittedText(slide, short(cell.focus || cell.note || "待验证", 22), { left: 300 + index * colW, top: top + 18, width: colW - 16, height: 54 }, { fontSize: 15, minFontSize: 13, maxLines: 3, alignment: "center" });
+        addFittedText(slide, short(cell.focus || cell.note || "待验证", 34), { left: 300 + index * colW, top: top + 7, width: colW - 16, height: 46 }, { fontSize: 13, minFontSize: 11, maxLines: 4, alignment: "left", lineSpacing: 1.02 });
       });
     });
-    addNotes(slide, ["对比的是设置侧重点，不是功能有无。", "侧重点应能从真实界面证据回推。"], sourceSubset(a));
+    addNotes(slide, ["每个格子都回答用户实际经历了什么，不再复述产品定位。", "缺少失败、权限或结果页证据时明确写未核验，不靠猜测补齐。"], sourceSubset(a));
   }
 
   // 19. Backend delivery from UI.
@@ -1938,14 +1925,16 @@ export async function buildPptx(rawAnalysis) {
     const slide = deck.slides.add();
     slide.background.fill = C.ink;
     addText(slide, "DECISION SUMMARY", { left: 72, top: 42, width: 280, height: 28 }, { fontSize: 16, color: C.lime, bold: true });
-    addText(slide, "立项结论：先验证企业付费，再放大平台能力", { left: 72, top: 86, width: 1136, height: 62 }, { fontSize: 42, color: C.white, bold: true, wrap: "none" });
+    addFittedText(slide, short(a.executiveSummary?.verdict, 70, "先补齐用户完成任务的关键断点，再验证付费"), { left: 72, top: 86, width: 1136, height: 62 }, { fontSize: 38, minFontSize: 30, color: C.white, bold: true, maxLines: 2 });
     const fromUi = a.productExperience?.businessFromUi || {};
     const scenarios = (a.userNeeds?.scenarios || []).slice(0, 3).map((item) => item.name).join("；") || "待验证";
+    const expensiveWork = ranked.filter((item) => Number(item.effort) >= 7).slice(0, 2).map((item) => `${item.title}（投入 ${item.effort}/10）`);
+    const costSummary = [...expensiveWork, ...(fromUi.costDrivers || []).slice(0, 2)].join("；") || "研发投入与运行成本待进一步估算";
     const summary = [
       ["需求", (fromUi.demand || []).join("；") || (a.userNeeds?.painPoints || []).slice(0, 3).join("；") || "待验证"],
       ["核心场景", scenarios],
       ["界面收费点", (fromUi.monetizationSurfaces || []).join("；") || a.economics?.model || "待从席位/额度入口验证"],
-      ["成本驱动", (fromUi.costDrivers || []).join("；") || "长任务、重试与存储"],
+      ["开发与运行成本", costSummary],
       ["运营闭环", (fromUi.operatingLoops || []).join("；") || a.economics?.retention || "待验证"],
       ["发展前景", fromUi.outlook || "个人工具 → 团队 Agent → 企业平台"],
     ];
@@ -1960,7 +1949,7 @@ export async function buildPptx(rawAnalysis) {
     });
     addRect(slide, { left: 72, top: 558, width: 1136, height: 90 }, C.accent, "rounded-2xl");
     addText(slide, "需要确认", { left: 102, top: 575, width: 150, height: 24 }, { fontSize: 17, color: C.white, bold: true });
-    addFittedText(slide, "是否批准 0–8 周验证版预算，并以企业试用转付费、任务成功率和单位任务成本作为追加投入闸门？", { left: 102, top: 606, width: 1068, height: 30 }, { fontSize: 22, minFontSize: 19, color: C.white, bold: true, maxLines: 1 });
+    addFittedText(slide, a.meta.decisionQuestion, { left: 102, top: 606, width: 1068, height: 30 }, { fontSize: 22, minFontSize: 18, color: C.white, bold: true, maxLines: 1 });
     addText(slide, `证据 ${a.evidence.length} 条  ·  评分覆盖 ${a.audit.scoreEvidenceCoverage}%  ·  机会覆盖 ${a.audit.opportunityEvidenceCoverage}%`, { left: 72, top: 674, width: 760, height: 20 }, { fontSize: 15, color: "#AABCB4" });
     addNotes(slide, [
       "最后一页同时回答需求、场景、服务、成本、收费运营和未来前景。",
@@ -2010,23 +1999,86 @@ export async function buildPptx(rawAnalysis) {
         addFittedText(slide, value, { left: x + 96, top, width: 228, height: 54 }, { fontSize: 13, minFontSize: 12, color: C.ink, maxLines: 3, lineSpacing: 1.08 });
       });
     }
-    const designConclusion = asList(group.designLogic, "信息架构需要结合真实界面继续验证")[0];
-    const interactionConclusion = asList(group.interactionLogic, "交互状态、权限与失败恢复需要继续验证")[0];
+    const allScreens = group.interfaceAudit || [];
+    const firstScreen = allScreens.find((item) => /进入|发起/u.test(item.usageStage || "")) || allScreens[0];
+    const runScreen = allScreens.find((item) => /执行/u.test(item.usageStage || ""));
+    const resultScreen = allScreens.find((item) => /交付/u.test(item.usageStage || ""));
+    const plainConclusion = `${group.competitorName}先让用户${firstScreen?.primaryAction || "发起任务"}；${runScreen ? `运行时${runScreen.feedback}` : "运行过程仍缺界面证据"}；${resultScreen ? `完成后${resultScreen.feedback}` : "结果怎样验收仍待核验"}。`;
     addRect(slide, { left: 72, top: 626, width: 1136, height: 58 }, C.ink, "rounded-xl");
-    addFittedText(slide, `产品判断：${designConclusion}；交互判断：${interactionConclusion}`, { left: 96, top: 634, width: 1088, height: 42 }, { fontSize: 15, minFontSize: 13, color: C.white, bold: true, maxLines: 2, lineSpacing: 1.08 });
+    addFittedText(slide, `一句话看懂：${plainConclusion}`, { left: 96, top: 634, width: 1088, height: 42 }, { fontSize: 16, minFontSize: 14, color: C.white, bold: true, maxLines: 2, lineSpacing: 1.08 });
     addNotes(slide, [
       `本页只分析 ${group.competitorName} 的真实应用使用过程，不使用官网首页或宣传图代替。`,
       "三个证据位分别覆盖进入或发起、执行状态、交付或治理；缺失项明确标为证据不足。",
     ], [...interfaceSources(group), ...sourcesByIds(a, audits.flatMap((item) => item.evidenceIds || []))]);
   }
 
-  // Revised story: market and demand -> real product usage evidence -> product,
-  // interaction and data logic -> service/economics -> execution and decision.
+  // Scenario value by product.
+  const scenarioValueSlideIndex = deck.slides.count;
+  {
+    const slide = deck.slides.add();
+    slide.background.fill = C.paper;
+    addSlideChrome(slide, "Scenario value", 24);
+    addTitle(slide, "三个产品最有价值的工作场景并不相同", "比较它们最适合替用户完成什么工作，以及哪些场景会显得太重或能力不足");
+    productAuditGroups.slice(0, 3).forEach((group, index) => {
+      const x = 64 + index * 384;
+      const profile = group.scenarioValue || {};
+      const scenarios = (profile.scenarios || []).slice(0, 3);
+      addRect(slide, { left: x, top: 214, width: 352, height: 420 }, index === 0 ? C.ink : C.white, "rounded-xl", index === 0 ? C.ink : C.line);
+      addText(slide, group.competitorName, { left: x + 20, top: 234, width: 312, height: 26 }, { fontSize: 18, color: index === 0 ? C.lime : C.mint, bold: true });
+      addFittedText(slide, profile.bestScene || "最佳场景待验证", { left: x + 20, top: 276, width: 312, height: 78 }, { fontSize: 21, minFontSize: 17, color: index === 0 ? C.white : C.ink, bold: true, maxLines: 4 });
+      scenarios.forEach((item, scenarioIndex) => {
+        const top = 374 + scenarioIndex * 76;
+        addText(slide, Number(item.fit || 0).toFixed(1), { left: x + 20, top, width: 44, height: 26 }, { fontSize: 18, color: scenarioIndex === 0 ? C.accent : C.mint, bold: true });
+        addFittedText(slide, item.name, { left: x + 70, top, width: 252, height: 24 }, { fontSize: 15, minFontSize: 13, color: index === 0 ? C.white : C.ink, bold: true, maxLines: 1 });
+        addFittedText(slide, item.why, { left: x + 70, top: top + 27, width: 252, height: 38 }, { fontSize: 12, minFontSize: 11, color: index === 0 ? "#BED0C8" : C.muted, maxLines: 3, lineSpacing: 1.02 });
+      });
+      addText(slide, "适合度 /5", { left: x + 20, top: 604, width: 90, height: 16 }, { fontSize: 10, color: index === 0 ? "#BED0C8" : C.muted });
+    });
+    addNotes(slide, ["场景价值分衡量产品是否能把一类工作从发起推进到可验收结果。", "最佳场景来自真实界面和官方指南；缺少完整任务证据时会明确写限制。"], sourceSubset(a));
+  }
+
+  // Ease-of-use score.
+  const usabilityScoreSlideIndex = deck.slides.count;
+  {
+    const slide = deck.slides.add();
+    slide.background.fill = C.paper;
+    addSlideChrome(slide, "Ease of use", 25);
+    addTitle(slide, "易上手不等于能力少：要看完成一次任务需要用户做多少判断", "5 分代表更容易使用；分别比较入口、首次配置、步骤、反馈、恢复和结果验收");
+    const groups = productAuditGroups.slice(0, 3);
+    const labels = groups[0]?.usabilityScore?.dimensions?.map((item) => item.label) || ["入口清晰", "首次配置", "操作步骤", "运行反馈", "失败恢复", "结果验收"];
+    addRect(slide, { left: 64, top: 216, width: 1144, height: 410 }, C.white, "rounded-xl", C.line);
+    addRect(slide, { left: 64, top: 216, width: 210, height: 72 }, C.ink, "none");
+    addText(slide, "使用环节", { left: 84, top: 240, width: 170, height: 26 }, { fontSize: 18, color: C.white, bold: true });
+    const colW = 311;
+    groups.forEach((group, index) => {
+      const x = 274 + index * colW;
+      const score = group.usabilityScore || {};
+      addRect(slide, { left: x, top: 216, width: colW, height: 72 }, index === 0 ? C.accent : C.mint, "none");
+      addFittedText(slide, group.competitorName, { left: x + 12, top: 228, width: colW - 100, height: 24 }, { fontSize: 16, minFontSize: 13, color: C.white, bold: true, maxLines: 1 });
+      addText(slide, `${Number(score.total || 0).toFixed(1)}/5`, { left: x + colW - 86, top: 226, width: 70, height: 30 }, { fontSize: 22, color: C.white, bold: true, alignment: "right" });
+      addText(slide, `${score.confidence?.level || "低"}置信度`, { left: x + 12, top: 258, width: 100, height: 18 }, { fontSize: 10, color: C.white });
+    });
+    labels.forEach((label, rowIndex) => {
+      const top = 288 + rowIndex * 56;
+      addText(slide, label, { left: 84, top: top + 17, width: 170, height: 24 }, { fontSize: 15, color: C.mint, bold: true });
+      groups.forEach((group, index) => {
+        const dimension = group.usabilityScore?.dimensions?.[rowIndex] || {};
+        const x = 274 + index * colW;
+        addText(slide, Number(dimension.score || 0).toFixed(1), { left: x + 16, top: top + 14, width: 34, height: 24 }, { fontSize: 17, color: Number(dimension.score || 0) <= 2 ? C.accent : C.mint, bold: true });
+        addFittedText(slide, dimension.reason || "待验证", { left: x + 56, top: top + 8, width: colW - 72, height: 40 }, { fontSize: 12, minFontSize: 11, color: C.ink, maxLines: 3, lineSpacing: 1.02 });
+      });
+    });
+    addNotes(slide, ["分数越高表示越容易上手，不代表产品能力更强。", "缺少执行、失败或结果页证据时，分数会标成暂定并降低置信度。"], sourceSubset(a));
+  }
+
+  // One coherent story shared with the web report: decision -> demand/scenarios ->
+  // real application evidence -> interaction/data/backend -> comparison -> business.
   deck = reorderPresentation(deck, [
-    0, 1, 2, 7, 3, 4, 5, 13,
+    0, 1, 2, 3, 5, 13,
     ...productEvidenceSlideIndexes,
-    14, 15, 16, 17, 18,
-    6, 8, 9, 10, 11, 12, 19,
+    scenarioValueSlideIndex, usabilityScoreSlideIndex,
+    14, 15, 16, 18, 17,
+    11, 12, 19,
   ]);
 
   const temp = path.join(os.tmpdir(), `ai-ca-${crypto.randomUUID()}.pptx`);
@@ -2161,7 +2213,7 @@ export async function buildDocx(rawAnalysis, visualDataUrl = "") {
   children.push(para(a.meta.decisionQuestion, { alignment: AlignmentType.CENTER, after: 620, size: 28, color: DOC.muted }));
   children.push(para(`${a.meta.date}  |  面向：${a.meta.audience}`, { alignment: AlignmentType.CENTER, after: 120, size: 20, bold: true }));
   children.push(para(`分析目标：${a.meta.objective}`, { alignment: AlignmentType.CENTER, after: 500, size: 20, color: DOC.muted }));
-  children.push(para("方法：需求 → 行业 → 五层拆解 → AI 专项 → 数据 → 商业 → 决策", { alignment: AlignmentType.CENTER, size: 18, color: DOC.accent }));
+  children.push(para("分析方法：从用户要完成的工作出发，逐步核对入口、操作、反馈、失败恢复、结果和权限", { alignment: AlignmentType.CENTER, size: 18, color: DOC.accent }));
   children.push(para(`调研：${a.research.mode === "web_search" ? `联网搜索（${a.research.searchCalls} 次）` : a.research.mode === "demo" ? "演示数据" : "离线材料"}`, { alignment: AlignmentType.CENTER, size: 17, color: DOC.muted }));
   children.push(new Paragraph({ children: [new PageBreak()] }));
 
@@ -2181,8 +2233,8 @@ export async function buildDocx(rawAnalysis, visualDataUrl = "") {
     }));
   }
 
-  children.push(heading("1. 分析范围与方法", 1));
-  children.push(para("本报告以用户任务和决策问题为起点，结合行业周期、产品五层结构、AI 专项能力、用户/增长/营收三大数据系统与商业效率进行分析。评分用于帮助定位，不替代证据。"));
+  children.push(heading("1. 这份报告分析什么", 1));
+  children.push(para("本报告先确定用户真正要完成的工作，再用真实应用界面检查每个产品怎样帮助用户开始、执行、处理失败和拿到结果。评分只用于快速定位，最终判断必须能回到具体证据。"));
   children.push(table([
     ["分析对象", "角色", "定位", "商业模式"],
     ...a.competitors.map((item) => [item.name, item.role, item.positioning, item.businessModel]),
@@ -2205,12 +2257,12 @@ export async function buildDocx(rawAnalysis, visualDataUrl = "") {
     ["场景", "触发", "任务", "期望结果", "证据"],
     ...a.userNeeds.scenarios.map((item) => [item.name, item.trigger, item.task, item.outcome, item.evidenceIds.join("、") || "无"]),
   ], [1500, 1800, 2300, 2300, 1460], { header: true }));
-  children.push(heading("Kano 需求分层", 2));
+  children.push(heading("需求优先级", 2));
   children.push(table([
     ["基础型", "期望型", "兴奋型", "无差异"],
     [a.userNeeds.kano.mustBe.join("\n") || "待验证", a.userNeeds.kano.performance.join("\n") || "待验证", a.userNeeds.kano.delighters.join("\n") || "待验证", a.userNeeds.kano.indifferent.join("\n") || "待验证"],
   ], [2340, 2340, 2340, 2340], { header: true }));
-  children.push(heading("How Might We", 2), ...bulletList(a.userNeeds.hmw));
+  children.push(heading("值得进一步解决的问题", 2), ...bulletList(a.userNeeds.hmw));
 
   children.push(heading("3. 行业与时机"));
   children.push(para(`阶段判断：${a.market.stage}`, { size: 25, bold: true, color: DOC.mint }));
@@ -2249,19 +2301,14 @@ export async function buildDocx(rawAnalysis, visualDataUrl = "") {
     ], [1200, 700, 1400, 6060], { header: true, centerColumns: [1] }));
   });
 
-  children.push(heading("5. 单品拆解"));
+  children.push(heading("5. 每个产品到底怎样解决问题"));
   a.competitors.forEach((competitor) => {
     children.push(heading(`${competitor.name}｜${competitor.positioning}`, 2));
     children.push(table([
       ["维度", "分析"],
       ["目标用户", competitor.targetUsers.join("、") || "待验证"],
       ["核心任务", competitor.coreJobs.join("、") || "待验证"],
-      ["核心链路", competitor.coreJourney.join(" → ") || "待验证"],
-      ["战略层", competitor.fiveLayers.strategy],
-      ["范围层", competitor.fiveLayers.scope.join("；") || "待验证"],
-      ["结构层", competitor.fiveLayers.structure.join("；") || "待验证"],
-      ["框架层", competitor.fiveLayers.framework.join("；") || "待验证"],
-      ["表现层", competitor.fiveLayers.surface.join("；") || "待验证"],
+      ["用户怎样完成任务", competitor.coreJourney.join(" → ") || "待验证"],
       ["定价", competitor.pricing || "待验证"],
       ["优势", competitor.strengths.join("；") || "待验证"],
       ["短板", competitor.weaknesses.join("；") || "待验证"],
@@ -2274,11 +2321,11 @@ export async function buildDocx(rawAnalysis, visualDataUrl = "") {
   children.push(heading("逐品界面与设置侧重点", 2));
   (px.competitorAudits || []).forEach((group) => {
     children.push(heading(`${group.competitorName}｜${group.role || "竞品"}`, 2));
-    children.push(para(`设置侧重点：${group.designFocus || "待验证"}`));
+    children.push(para(`一句话看懂：${group.designFocus || "待验证"}`));
     children.push(table([
       ["维度", "判断"],
-      ["产品设计 / 信息架构", (group.designLogic || []).join("；") || "待验证"],
-      ["交互、权限与失败恢复", (group.interactionLogic || []).join("；") || "待验证"],
+      ["用户怎样开始和完成任务", (group.designLogic || []).slice(0, 1).join("；") || "待验证"],
+      ["运行中怎样反馈、失败后怎样继续", (group.interactionLogic || []).slice(0, 3).join("；") || "待验证"],
       ["界面优点", (group.strengths || []).join("；") || "待验证"],
       ["界面短板", (group.weaknesses || []).join("；") || "待验证"],
     ], [2200, 7160], { header: true }));
@@ -2300,24 +2347,43 @@ export async function buildDocx(rawAnalysis, visualDataUrl = "") {
         ]),
       ], [1600, 1400, 2200, 2200, 1960], { header: true }));
     }
+    const scenarioValue = group.scenarioValue || {};
+    children.push(heading("最适合替用户完成什么工作", 3));
+    children.push(para(`最能体现价值的场景：${scenarioValue.bestScene || "待验证"}`, { bold: true, color: DOC.mint }));
+    children.push(para(scenarioValue.summary || "待验证"));
+    if ((scenarioValue.scenarios || []).length) {
+      children.push(table([
+        ["工作场景", "适合度", "适合做什么", "为什么有价值", "证据与限制"],
+        ...scenarioValue.scenarios.map((item) => [item.name, `${Number(item.fit || 0).toFixed(1)}/5`, item.work, item.why, `${item.evidenceScreen}；${item.limitation}`]),
+      ], [1500, 900, 2100, 2400, 2460], { header: true, centerColumns: [1] }));
+    }
+    const usability = group.usabilityScore || {};
+    children.push(heading("容易上手还是使用成本高", 3));
+    children.push(para(`综合评分：${Number(usability.total || 0).toFixed(1)}/5；证据置信度：${usability.confidence?.level || "低"}。${usability.verdict || "待验证"}`, { bold: true }));
+    if ((usability.dimensions || []).length) {
+      children.push(table([
+        ["使用环节", "评分", "为什么", "界面证据"],
+        ...usability.dimensions.map((item) => [item.label, `${Number(item.score || 0).toFixed(1)}/5`, item.reason, item.evidenceScreen]),
+      ], [1600, 900, 4660, 2200], { header: true, centerColumns: [1] }));
+    }
   });
-  children.push(heading("设置侧重点横向对比", 2));
+  children.push(heading("同一件工作，各产品让用户怎样完成", 2));
   const comparison = px.comparison || {};
   const products = [...new Set((comparison.cells || []).map((item) => item.product))];
   const dimensions = comparison.dimensions?.length ? comparison.dimensions : [...new Set((comparison.cells || []).map((item) => item.dimension))];
   const cellMap = new Map((comparison.cells || []).map((item) => [`${item.dimension}::${item.product}`, item]));
   if (products.length && dimensions.length) {
     children.push(table([
-      ["比较维度", ...products],
+      ["用户要做的事", ...products],
       ...dimensions.map((dimension) => [dimension, ...products.map((name) => {
         const cell = cellMap.get(`${dimension}::${name}`) || {};
         return `${cell.focus || "待验证"}${cell.note ? `｜${cell.note}` : ""}`;
       })]),
     ], [1800, ...products.map(() => Math.floor(7560 / Math.max(1, products.length)))], { header: true }));
   } else {
-    children.push(para("尚未形成横向对比。需要在取得各产品真实界面后再比较入口、编排、恢复和交付侧重点。"));
+    children.push(para("尚未形成横向对比。需要取得各产品真实界面后，再比较从哪里开始、怎样操作、卡住后怎么办和最后怎样拿到结果。"));
   }
-  children.push(heading("五方泳道", 2));
+  children.push(heading("一件任务由谁接手，系统怎样配合", 2));
   if ((px.swimlanes || []).length) {
     children.push(table([
       ["泳道 / 阶段", ...(px.swimlanes || []).map((item) => item.stage)],
@@ -2330,22 +2396,22 @@ export async function buildDocx(rawAnalysis, visualDataUrl = "") {
   } else {
     children.push(para("尚未形成用户、前端、Agent、运营与数据泳道。"));
   }
-  children.push(heading("埋点与数据模型", 2));
+  children.push(heading("需要记录哪些行为，才能做产品判断", 2));
   if ((px.trackingPlan || []).length) {
     children.push(table([
       ["事件", "触发", "指标", "产品决策", "属性"],
       ...px.trackingPlan.map((item) => [item.event, item.trigger, item.metric, item.decision, (item.properties || []).join("、") || "待定义"]),
     ], [1600, 1800, 1600, 2200, 2160], { header: true }));
   }
-  children.push(para(`数据原则：${(px.dataModel?.principles || []).join("；") || "租户隔离、事件不可变、运行可回放"}`));
+  children.push(para(`保存数据时必须做到：${(px.dataModel?.principles || []).join("；") || "不同企业的数据互不混用，任务过程可以追查，失败任务可以继续"}`));
   if ((px.dataModel?.entities || []).length) {
     children.push(table([
-      ["实体", "用途", "关键字段", "关系", "留存"],
+      ["需要保存的业务对象", "为什么要保存", "识别信息", "与其他对象的关系", "保留多久"],
       ...px.dataModel.entities.map((item) => [item.name, item.purpose, (item.keyFields || []).join("、") || "待定义", (item.relations || []).join("；") || "待定义", item.retention]),
     ], [1400, 2200, 2200, 2000, 1560], { header: true }));
   }
   const backend = px.backendDelivery || {};
-  children.push(heading("倒推给后端的最小交付口径", 2));
+  children.push(heading("为了让这些界面真正可用，后端最少要做什么", 2));
   children.push(para(backend.summary || "从界面状态反推最小可交付实现，待产品与研发共同验收。"));
   if ((backend.apis || []).length) {
     children.push(table([
@@ -2361,18 +2427,18 @@ export async function buildDocx(rawAnalysis, visualDataUrl = "") {
   }
   children.push(heading("权限与验收", 2), ...bulletList([...(backend.permissions || []), ...(backend.acceptance || [])]));
   const fromUi = px.businessFromUi || {};
-  children.push(heading("从界面读出的商业逻辑", 2));
+  children.push(heading("从真实使用过程看需求、收费和长期机会", 2));
   children.push(table([
     ["维度", "从界面回推的判断"],
     ["需求", (fromUi.demand || []).join("；") || (a.userNeeds?.painPoints || []).slice(0, 3).join("；") || "待验证"],
     ["核心场景", (a.userNeeds?.scenarios || []).slice(0, 3).map((item) => item.name).join("；") || "待验证"],
-    ["界面收费点", (fromUi.monetizationSurfaces || []).join("；") || a.economics?.model || "待从席位/额度入口验证"],
-    ["成本驱动", (fromUi.costDrivers || []).join("；") || "长任务、重试与存储"],
+    ["怎样收费", (fromUi.monetizationSurfaces || []).join("；") || a.economics?.model || "待从席位或额度入口验证"],
+    ["开发与运行成本", [...a.opportunities.filter((item) => Number(item.effort) >= 7).slice(0, 2).map((item) => `${item.title}（投入 ${item.effort}/10）`), ...(fromUi.costDrivers || []).slice(0, 2)].join("；") || "待估算"],
     ["运营闭环", (fromUi.operatingLoops || []).join("；") || a.economics?.retention || "待验证"],
     ["发展前景", fromUi.outlook || "待验证"],
   ], [1800, 7560], { header: true }));
 
-  children.push(heading("7. AI 专项能力"));
+  children.push(heading("7. AI 在真实任务中的表现"));
   children.push(table([
     ["竞品", "模型策略", "效果/时延", "可靠/隐私", "数据飞轮", "集成/成本"],
     ...a.competitors.map((item) => [

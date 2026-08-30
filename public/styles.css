@@ -352,8 +352,21 @@ dialog::backdrop { background: rgba(9, 20, 17, .68); backdrop-filter: blur(5px);
 .toast { position: fixed; right: 24px; bottom: 24px; z-index: 200; max-width: 420px; padding: 13px 16px; border-left: 4px solid var(--mint); background: var(--ink); color: var(--white); box-shadow: var(--shadow); font-size: 12px; line-height: 1.5; transform: translateY(120px); opacity: 0; transition: .25s ease; }
 .toast.show { transform: none; opacity: 1; }.toast.error { border-color: var(--red); }
 
+.ui-best-scene { padding: 22px 26px; display: grid; grid-template-columns: 190px 1fr; gap: 8px 22px; align-items: center; background: var(--ink); color: var(--white); }
+.ui-best-scene span { grid-row: span 2; color: var(--lime); font-size: 11px; font-weight: 800; }
+.ui-best-scene strong { font-size: 20px; line-height: 1.45; }.ui-best-scene p { margin: 0; color: #b8c8c2; font-size: 11px; line-height: 1.6; }
+.ui-scenario-grid { margin-top: 14px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ui-scenario-card { position: relative; min-height: 210px; padding: 22px; border: 1px solid var(--line); background: #faf9f5; }
+.ui-scenario-card > div { position: absolute; right: 18px; top: 16px; display: grid; text-align: right; }.ui-scenario-card > div span { color: var(--muted); font-size: 8px; }.ui-scenario-card > div b { color: var(--accent); font-size: 23px; }.ui-scenario-card > div small { font-size: 9px; }
+.ui-scenario-card h4 { max-width: calc(100% - 90px); margin: 0 0 16px; font-size: 17px; }.ui-scenario-card p { margin: 8px 0; color: var(--muted); font-size: 10px; line-height: 1.55; }.ui-scenario-card p strong { color: var(--ink); }.ui-scenario-card > small { display: block; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); color: var(--muted); font-size: 9px; line-height: 1.55; }
+.ui-scenario-comparison { margin-top: 18px; padding-top: 18px; border-top: 1px solid var(--line); }.ui-scenario-comparison h4 { margin: 0 0 12px; font-size: 16px; }.ui-scenario-comparison > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }.ui-scenario-comparison article { padding: 16px; border-top: 4px solid var(--mint); background: var(--paper); }.ui-scenario-comparison article:nth-child(2) { border-color: var(--accent); }.ui-scenario-comparison article:nth-child(3) { border-color: var(--blue); }.ui-scenario-comparison span,.ui-scenario-comparison strong,.ui-scenario-comparison small { display: block; }.ui-scenario-comparison span { color: var(--muted); font-size: 9px; }.ui-scenario-comparison strong { margin: 8px 0; font-size: 12px; line-height: 1.5; }.ui-scenario-comparison small { color: var(--muted); font-size: 9px; line-height: 1.5; }
+.ui-usability-verdict { padding: 22px 26px; display: grid; grid-template-columns: 230px 1fr; gap: 8px 22px; align-items: center; background: #e8efe9; }.ui-usability-verdict > div { grid-row: span 2; display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 4px 10px; }.ui-usability-verdict span { color: var(--mint); font-size: 10px; font-weight: 800; }.ui-usability-verdict strong { color: var(--ink); font-size: 34px; }.ui-usability-verdict strong small { font-size: 11px; }.ui-usability-verdict em { grid-column: 1 / -1; color: var(--muted); font-size: 9px; font-style: normal; }.ui-usability-verdict p { margin: 0; font-size: 14px; line-height: 1.55; font-weight: 700; }.ui-usability-verdict > small { color: var(--muted); font-size: 9px; }
+.ui-usability-dimensions { margin-top: 14px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }.ui-usability-dimensions article { padding: 17px; border: 1px solid var(--line); }.ui-usability-dimensions header { display: flex; justify-content: space-between; align-items: center; }.ui-usability-dimensions header strong { font-size: 12px; }.ui-usability-dimensions header b { color: var(--accent); font-size: 18px; }.ui-score-track { height: 5px; margin: 10px 0; overflow: hidden; background: #e6e8e4; }.ui-score-track i { display: block; height: 100%; background: var(--mint); }.ui-usability-dimensions p { min-height: 48px; margin: 0 0 8px; color: var(--muted); font-size: 9px; line-height: 1.55; }.ui-usability-dimensions small { color: var(--muted); font-size: 8px; }
+.ui-usability-comparison { margin-top: 18px; overflow-x: auto; }
+
 @media (max-width: 1180px) {
   .ui-evidence-layout, .ui-logic-columns { grid-template-columns: 1fr; }
+  .ui-scenario-comparison > div, .ui-usability-dimensions { grid-template-columns: 1fr; }
   .ui-tracking-grid, .ui-data-principles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ui-entity-grid, .ui-business-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .app-shell { grid-template-columns: 210px minmax(0, 1fr); }
@@ -389,4 +402,5 @@ dialog::backdrop { background: rgba(9, 20, 17, .68); backdrop-filter: blur(5px);
   .rockets, .roadmap-columns, .audit-strip, .summary-grid, .persona-grid, .kano-grid, .data-systems-grid, .profile-grid, .ai-profile .profile-grid, .swot-grid, .five-layer-grid { grid-template-columns: 1fr; }
   .layer-cell, .swot-grid > div { border-right: 0; border-bottom: 1px solid var(--line); }
   .deep-section { padding: 20px; }
+  .ui-best-scene, .ui-usability-verdict { grid-template-columns: 1fr; }.ui-best-scene span,.ui-usability-verdict > div { grid-row: auto; }.ui-scenario-grid { grid-template-columns: 1fr; }
 }

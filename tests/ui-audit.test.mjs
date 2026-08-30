@@ -1,7 +1,7 @@
 import path from "node:path";
 import test from "node:test";
 import assert from "node:assert/strict";
-import { compileUiAuditFromScreens, playbookFor } from "../public/ui-audit.js";
+import { buildTaskChainComparison, compileUiAuditFromScreens, playbookFor } from "../public/ui-audit.js";
 import { enrichVisualEvidence } from "../server/visual-evidence.mjs";
 
 test("playbooks distinguish office agents", () => {
@@ -92,4 +92,42 @@ test("products keep distinct swimlanes compiled from their own screens", async (
   assert.notEqual(result.productExperience.competitorAudits[0].designFocus, result.productExperience.competitorAudits[1].designFocus);
   assert.equal(result.productExperience.competitorAudits[0].interfaceAudit[0].callouts[0].x, 8);
   assert.equal(traeLanes.includes("进入"), true);
+});
+
+test("scores scenario value and onboarding cost in plain language", async () => {
+  const seeded = await enrichVisualEvidence({
+    competitors: [
+      { name: "腾讯 WorkBuddy", role: "本品", fiveLayers: { strategy: "待验证", scope: [], structure: [], framework: [], surface: [] } },
+      { name: "QwenWork（千问办公）", role: "直接竞品", fiveLayers: { strategy: "待验证", scope: [], structure: [], framework: [], surface: [] } },
+      { name: "豆包工作（Doubao Work）", role: "直接竞品", fiveLayers: { strategy: "待验证", scope: [], structure: [], framework: [], surface: [] } },
+    ],
+    productExperience: { competitorAudits: [] },
+  }, { assetsRoot: path.resolve("public/generated/ui") });
+  const audits = compileUiAuditFromScreens(seeded).productExperience.competitorAudits;
+  assert.equal(audits.every((item) => item.scenarioValue.scenarios.length >= 3), true);
+  assert.equal(audits.every((item) => item.usabilityScore.dimensions.length === 6), true);
+  assert.equal(audits.every((item) => item.usabilityScore.total >= 1 && item.usabilityScore.total <= 5), true);
+  assert.equal(new Set(audits.map((item) => item.scenarioValue.bestScene)).size, 3);
+  assert.equal(audits.some((item) => /交互侧重点|信息架构较好/u.test(item.usabilityScore.verdict)), false);
+  assert.match(audits[0].usabilityScore.scale, /更容易上手/);
+});
+
+test("task-chain comparison uses observable UI evidence instead of repeating product positioning", () => {
+  const comparison = buildTaskChainComparison([{
+    competitorName: "产品 A",
+    designFocus: "一句定位",
+    weaknesses: ["中断后续跑入口不清晰"],
+    interfaceAudit: [
+      { screen: "任务首页", usageStage: "进入/发起", sourceType: "official_tutorial", imageUrl: "/a.png", entry: "点击新建任务", purpose: "创建独立任务", primaryAction: "选择工作空间并提交", feedback: "任务进入列表", friction: "模式较多" },
+      { screen: "执行页", usageStage: "执行", sourceType: "actual_app_ui", imageUrl: "/b.png", primaryAction: "查看计划并停止任务", feedback: "逐步显示运行状态", friction: "失败原因折叠" },
+      { screen: "结果页", usageStage: "交付", sourceType: "official_tutorial", imageUrl: "/c.png", primaryAction: "预览并下载", feedback: "产物卡片可续改", friction: "版本差异不明显" },
+      { screen: "权限页", usageStage: "治理", sourceType: "official_tutorial", imageUrl: "/d.png", primaryAction: "确认读写范围", feedback: "显示当前授权", friction: "高权限风险说明较弱" },
+    ],
+  }]);
+  assert.deepEqual(comparison.dimensions, ["入口对象", "发起与配置", "执行反馈", "失败恢复", "结果交付", "权限治理"]);
+  assert.equal(comparison.cells.length, 6);
+  assert.equal(new Set(comparison.cells.map((cell) => cell.focus)).size, 6);
+  assert.equal(comparison.cells.some((cell) => cell.focus === "一句定位" || cell.focus === "交互侧重点"), false);
+  assert.match(comparison.cells.find((cell) => cell.dimension === "执行反馈").focus, /运行状态/);
+  assert.match(comparison.cells.find((cell) => cell.dimension === "结果交付").note, /结果页/);
 });

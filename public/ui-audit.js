@@ -7,6 +7,27 @@ const LAYER_PLAYBOOKS = [
     designFocus: "以独立任务为对象：先选岗位域，再选 Ask/Craft/Plan 放权，发起前确认工作空间",
     strengths: ["任务而不是会话作为主对象", "Ask/Craft/Plan 把动手权限做成显式选择", "助理把远程遥控从日常任务里拆出去", "交付物可预览、可回看"],
     weaknesses: ["岗位域、放权模式、技能和权限叠在同一输入条，新用户选择顺序不清晰"],
+    scenarioValue: {
+      bestScene: "需要读取本地文件、分步骤执行，并最终交付文档或网页的办公任务",
+      summary: "它的价值不在简单问答，而在把一项办公工作作为独立任务持续执行到交付。",
+      scenarios: [
+        { name: "本地文件与办公文档交付", fit: 5, work: "整理本地资料，生成报告、网页或文档", why: "工作空间限定文件范围，完成后能直接预览产物", evidenceStage: "交付", limitation: "开始前要理解工作空间和权限" },
+        { name: "需要规划的长任务", fit: 5, work: "先拆步骤，再持续执行研究、整理或制作任务", why: "Ask、Craft、Plan 把问答、直接执行和先规划分开", evidenceStage: "执行", limitation: "模式较多，新用户需要先学会选择" },
+        { name: "离开电脑后的远程派活", fit: 4, work: "从手机或助理入口给电脑布置任务并查看结果", why: "助理与本机工作目录结合，适合人不在电脑前的任务", evidenceStage: "治理", limitation: "远程状态和失败恢复仍需要更多界面验证" },
+        { name: "一次性简单问答", fit: 3, work: "查询概念、改写短文或获得建议", why: "能够完成，但独立任务、模式和权限设置显得偏重", evidenceStage: "发起", limitation: "简单问题使用成本高于普通聊天产品" },
+      ],
+    },
+    usabilityScore: {
+      verdict: "结果验收最清楚，但开始前要理解模式、工作空间和权限，上手成本偏高。",
+      dimensions: [
+        { key: "entry", label: "入口清晰", score: 3, reason: "新建任务入口明确，但岗位、模型和模式同时出现，第一步选择较多。", evidenceStage: "进入" },
+        { key: "setup", label: "首次配置", score: 2, reason: "用户要先理解工作空间、Ask/Craft/Plan 和权限范围。", evidenceStage: "配置" },
+        { key: "steps", label: "操作步骤", score: 3, reason: "选好范围后可以直接输入任务，但发起前的选择比普通聊天多。", evidenceStage: "发起" },
+        { key: "feedback", label: "运行反馈", score: 4, reason: "完成状态、耗时和生成文件都能看见。", evidenceStage: "执行" },
+        { key: "recovery", label: "失败恢复", score: 2, reason: "现有证据没有完整展示失败原因、重试和断点续跑。", evidenceStage: "执行" },
+        { key: "result", label: "结果验收", score: 5, reason: "产物卡片与右侧预览同步，用户能继续追问修改。", evidenceStage: "交付" },
+      ],
+    },
     structure: [
       { text: "一级 IA：新建任务 / 助理 / 项目 / 专家·技能·连接器 / 自动化 / 资料库·灵感，主对象是任务不是会话" },
       { text: "岗位域：日常办公 / 代码开发 / 设计创意；放权：Ask 仅问答、Craft 默认执行、Plan 先计划后动手" },
@@ -52,6 +73,27 @@ const LAYER_PLAYBOOKS = [
     designFocus: "桌面三栏工作台：侧栏模块、中央任务、右侧监控与产物",
     strengths: ["任务监控对用户可见", "定时任务可离开当前会话"],
     weaknesses: ["扩展、频道和任务入口并列，需要用户自己分类"],
+    scenarioValue: {
+      bestScene: "需要调用多个工具、持续运行并留下可复用产物的复杂办公任务",
+      summary: "它最强的地方是把计划、工具调用、定时执行和产物放在同一个桌面任务里。",
+      scenarios: [
+        { name: "多工具复杂办公任务", fit: 5, work: "让 AI 连续调用技能、连接器和文件完成一项工作", why: "右侧监控能同时展示计划、工具和被操作文件", evidenceStage: "执行", limitation: "信息密度高，需要用户理解扩展和任务的区别" },
+        { name: "定时或持续运行任务", fit: 5, work: "周期性收集、整理和生成内容", why: "定时任务是独立入口，任务可以离开当前对话继续运行", evidenceStage: "进入", limitation: "定时失败后的通知和恢复证据仍不足" },
+        { name: "需要反复修改的文件交付", fit: 4, work: "生成文件后预览、下载并继续修改", why: "产物永久附着在任务上，历史任务可以再次打开", evidenceStage: "交付", limitation: "大量历史任务的整理成本需要继续验证" },
+        { name: "企业原生协同", fit: 3, work: "在团队组织和文档权限下协同完成任务", why: "具备频道和扩展入口，但现有界面证据没有充分展示企业权限闭环", evidenceStage: "治理", limitation: "组织权限与审计能力证据不足" },
+      ],
+    },
+    usabilityScore: {
+      verdict: "任务运行和结果回看比较顺手，但入口较多，用户要先分清任务、扩展、频道和定时任务。",
+      dimensions: [
+        { key: "entry", label: "入口清晰", score: 2, reason: "新任务入口能找到，但扩展、频道、历史和定时任务并列，用户要先判断该去哪里。", evidenceStage: "进入" },
+        { key: "setup", label: "首次配置", score: 2, reason: "复杂任务开始前要理解技能、MCP、工作目录和定时任务的区别。", evidenceStage: "配置" },
+        { key: "steps", label: "操作步骤", score: 4, reason: "从侧栏进入任务后可直接提交，执行过程留在同一工作台。", evidenceStage: "发起" },
+        { key: "feedback", label: "运行反馈", score: 4, reason: "对话回复和右侧任务监控同步变化，用户知道任务正在做什么。", evidenceStage: "执行" },
+        { key: "recovery", label: "失败恢复", score: 2, reason: "现有证据没有明确展示失败后的重试、续跑和错误定位。", evidenceStage: "执行" },
+        { key: "result", label: "结果验收", score: 4, reason: "产物可预览、下载并继续提出修改，历史任务也能重新打开。", evidenceStage: "交付" },
+      ],
+    },
     structure: [
       { text: "一级 IA：新任务 / 扩展（专家套件·技能·连接器）/ 定时任务 / IM 频道 / 任务历史" },
       { text: "任务流：主窗口发起 → 右侧监控计划与工具 → 产物卡片收取并可续改" },
@@ -69,6 +111,27 @@ const LAYER_PLAYBOOKS = [
     designFocus: "飞书原生打通的办公 Agent：飞书账号登录即继承企业文档、权限和额度，再在电脑版执行",
     strengths: ["飞书一键登录，组织身份出现在左下角", "技能/连接器/伙伴与任务入口分开", "手机遥控电脑是一级入口"],
     weaknesses: ["个人豆包账号与飞书企业身份并列，技能、连接器、伙伴的边界需要额外解释"],
+    scenarioValue: {
+      bestScene: "已经使用飞书文档和企业知识库的团队，把协作资料直接交给 Agent 处理",
+      summary: "它的优势是继承飞书身份、文档和组织关系，最适合企业协作场景，而不是孤立的个人任务。",
+      scenarios: [
+        { name: "飞书文档与知识库协作", fit: 5, work: "读取团队资料，生成培训、汇报或协作文档", why: "飞书账号登录后直接带入企业身份和知识资产", evidenceStage: "进入", limitation: "不同文档权限怎样提示仍需核验" },
+        { name: "团队内分派办公任务", fit: 5, work: "让团队成员或 Agent 在统一组织身份下接手工作", why: "企业身份、伙伴和任务入口处在同一个产品中", evidenceStage: "发起", limitation: "完整的多人流转过程仍缺界面证据" },
+        { name: "安装连接器后复用流程", fit: 4, work: "连接外部服务，并把常用能力加入工作任务", why: "技能、连接器和伙伴有独立市场入口", evidenceStage: "配置", limitation: "三类能力边界较难理解" },
+        { name: "强本地隐私任务", fit: 2, work: "只在本机处理敏感文件并完整追踪执行过程", why: "当前证据主要体现飞书身份和能力市场，本地执行与结果页证据不足", evidenceStage: "执行", limitation: "不能据现有证据确认本地闭环" },
+      ],
+    },
+    usabilityScore: {
+      verdict: "飞书用户进入成本最低，但完整任务运行、失败恢复和结果验收证据不足，当前总分只能算暂定。",
+      dimensions: [
+        { key: "entry", label: "入口清晰", score: 5, reason: "飞书账号一键登录，进入后主工作台的新任务入口明显。", evidenceStage: "进入" },
+        { key: "setup", label: "首次配置", score: 3, reason: "企业身份自动带入，但技能、连接器和伙伴之间需要额外理解。", evidenceStage: "配置" },
+        { key: "steps", label: "操作步骤", score: 4, reason: "登录后可从工作台直接新建任务，开始路径较短。", evidenceStage: "发起" },
+        { key: "feedback", label: "运行反馈", score: 3, reason: "现有截图不足以确认长任务的进度反馈，分数为暂定。", evidenceStage: "执行" },
+        { key: "recovery", label: "失败恢复", score: 2, reason: "没有取得失败、重试或断点续跑界面。", evidenceStage: "执行" },
+        { key: "result", label: "结果验收", score: 3, reason: "缺少结果页截图，暂不能确认预览、修改和复用是否顺手。", evidenceStage: "交付" },
+      ],
+    },
     structure: [
       { text: "豆包工作是飞书团队×豆包团队合并后的第一款 Agent，不是豆包 App 换皮，也不是飞书 CLI 的外壳" },
       { text: "一级 IA：新工作任务 / 定时任务 / 技能·连接器·伙伴 / 伙伴对话 / 云盘 / 手机遥控电脑" },
@@ -226,6 +289,10 @@ function screenForStage(screens, stage) {
   return screens.find((screen) => stagesOf(screen).some((item) => item.includes(stage) || stage.includes(item))) || screens[0];
 }
 
+function exactScreenForStage(screens, stage) {
+  return screens.find((screen) => stagesOf(screen).some((item) => item.includes(stage) || stage.includes(item)));
+}
+
 function compileSwimlanes(screens) {
   const stages = collectStages(screens);
   const present = STAGE_ORDER.filter((stage) => [...stages].some((item) => item.includes(stage) || stage.includes(item)));
@@ -363,6 +430,79 @@ function compileSettings(screens, playbook, stages) {
   }));
 }
 
+function evidenceForStage(screens, stage) {
+  const exact = exactScreenForStage(screens, stage);
+  if (exact) return exact.screen;
+  if (stage === "发起") return exactScreenForStage(screens, "进入")?.screen || "缺少发起界面";
+  if (stage === "配置") return exactScreenForStage(screens, "治理")?.screen || "缺少配置界面";
+  return `缺少${stage}界面`;
+}
+
+function evidenceConfidence(screens) {
+  const covered = ["进入", "发起", "配置", "执行", "交付", "治理"]
+    .filter((stage) => exactScreenForStage(screens, stage)).length;
+  if (covered >= 5) return { level: "高", covered, note: "主要任务阶段都有真实界面证据" };
+  if (covered >= 3) return { level: "中", covered, note: "仍缺少部分运行、恢复或结果界面" };
+  return { level: "低", covered, note: "当前主要依据首页或配置页，结论仅供暂定" };
+}
+
+function compileScenarioAndUsability(name, screens, playbook) {
+  const confidence = evidenceConfidence(screens);
+  const scenarioProfile = playbook?.scenarioValue;
+  const scenarioFallback = unique(screens.map((screen) => screen.purpose), 4).map((purpose, index) => ({
+    name: screens[index]?.screen || `工作场景 ${index + 1}`,
+    fit: exactScreenForStage(screens, "交付") ? 4 : 3,
+    work: purpose,
+    why: `现有界面显示用户可以${observable(screens[index], "primaryAction", "完成该阶段操作")}`,
+    evidenceStage: stagesOf(screens[index])[0] || "进入",
+    limitation: observable(screens[index], "friction", "仍需更多实际使用证据"),
+  }));
+  const scenarios = (scenarioProfile?.scenarios || scenarioFallback).slice(0, 4).map((item) => ({
+    name: item.name,
+    fit: Math.max(1, Math.min(5, Number(item.fit) || 3)),
+    work: item.work,
+    why: item.why,
+    evidenceScreen: evidenceForStage(screens, item.evidenceStage || "进入"),
+    limitation: item.limitation,
+  }));
+
+  const usabilityProfile = playbook?.usabilityScore;
+  const defaultDimensions = [
+    { key: "entry", label: "入口清晰", score: 3, reason: "入口是否容易理解，需要结合首页和新建任务界面判断。", evidenceStage: "进入" },
+    { key: "setup", label: "首次配置", score: 3, reason: "开始前需要理解的模式、权限和工作范围仍需验证。", evidenceStage: "配置" },
+    { key: "steps", label: "操作步骤", score: 3, reason: "从发起到执行的跳转数量需要继续实测。", evidenceStage: "发起" },
+    { key: "feedback", label: "运行反馈", score: exactScreenForStage(screens, "执行") ? 4 : 3, reason: exactScreenForStage(screens, "执行") ? "已经取得运行状态界面。" : "缺少运行中界面，分数为暂定。", evidenceStage: "执行" },
+    { key: "recovery", label: "失败恢复", score: 2, reason: "没有足够证据确认停止、重试和断点续跑。", evidenceStage: "执行" },
+    { key: "result", label: "结果验收", score: exactScreenForStage(screens, "交付") ? 4 : 3, reason: exactScreenForStage(screens, "交付") ? "已经取得结果预览或交付界面。" : "缺少结果页，分数为暂定。", evidenceStage: "交付" },
+  ];
+  const dimensions = (usabilityProfile?.dimensions || defaultDimensions).map((item) => ({
+    key: item.key,
+    label: item.label,
+    score: Math.max(1, Math.min(5, Number(item.score) || 3)),
+    reason: item.reason,
+    evidenceScreen: evidenceForStage(screens, item.evidenceStage || "进入"),
+  }));
+  const total = dimensions.length
+    ? Math.round((dimensions.reduce((sum, item) => sum + item.score, 0) / dimensions.length) * 10) / 10
+    : 0;
+  return {
+    scenarioValue: {
+      bestScene: scenarioProfile?.bestScene || scenarios[0]?.work || `${name}的最佳场景仍待验证`,
+      summary: scenarioProfile?.summary || `从现有界面看，${name}最有价值的地方是把任务从入口推进到可见结果。`,
+      scenarios,
+    },
+    usabilityScore: {
+      total,
+      scale: "5 分代表更容易上手、使用成本更低",
+      confidence,
+      verdict: usabilityProfile?.verdict || `${name}当前上手成本为 ${total}/5，仍需结合完整任务实测。`,
+      dimensions,
+      easyPoints: dimensions.filter((item) => item.score >= 4).map((item) => `${item.label}：${item.reason}`),
+      complexityDrivers: dimensions.filter((item) => item.score <= 2).map((item) => `${item.label}：${item.reason}`),
+    },
+  };
+}
+
 export function compileFromDocsMap(docsMap) {
   if (!docsMap) return [];
   const platforms = (docsMap.platforms || []).map((item) => item.name).filter(Boolean);
@@ -373,6 +513,32 @@ export function compileFromDocsMap(docsMap) {
     modules.length ? `官方功能树：${modules.slice(0, 14).join(" / ")}` : "",
     ...notes.slice(0, 2),
   ], 4);
+}
+
+function plainProductLogic(name, screens) {
+  const entry = exactScreenForStage(screens, "进入") || screens[0];
+  const launch = exactScreenForStage(screens, "发起") || entry;
+  const execution = exactScreenForStage(screens, "执行");
+  const delivery = exactScreenForStage(screens, "交付");
+  const start = observable(launch || entry, "primaryAction", `从「${entry?.screen || "工作台"}」发起任务`);
+  const progress = execution && execution !== entry
+    ? `执行时通过「${execution.screen}」查看进度`
+    : `系统用「${observable(launch || entry, "feedback", "任务状态") }」回应`;
+  const finish = delivery && delivery !== entry
+    ? `最后在「${delivery.screen}」${observable(delivery, "primaryAction", "验收结果")}`
+    : "最后回到任务中验收结果";
+  return `${name}的产品逻辑很直接：用户先${start}；${progress}；${finish}。`;
+}
+
+function plainInteractionLogic(screens) {
+  const execution = exactScreenForStage(screens, "执行");
+  const delivery = exactScreenForStage(screens, "交付");
+  const governance = exactScreenForStage(screens, "治理");
+  return unique([
+    execution ? `任务运行时，界面会${observable(execution, "feedback", "显示当前状态")}，用户可据此决定等待、停止或补充信息。` : "尚缺任务运行中的界面证据，无法判断用户怎样知道任务是否还在工作。",
+    delivery ? `任务完成后，用户在「${delivery.screen}」${observable(delivery, "primaryAction", "查看并处理结果")}。` : "尚缺结果页证据，无法判断结果怎样验收和继续修改。",
+    governance ? `涉及权限时，用户需要${observable(governance, "primaryAction", "确认执行范围")}；主要风险是${observable(governance, "friction", "授权边界不够清楚")}。` : "尚缺权限界面，无法确认高风险操作怎样提示和追溯。",
+  ], 3);
 }
 
 function compileProductFromScreens(name, screens, playbook, docsMap) {
@@ -391,16 +557,21 @@ function compileProductFromScreens(name, screens, playbook, docsMap) {
       trackingPlan: [],
       dataModel: { principles: [], entities: [] },
       backendDelivery: { summary: "", userStories: [], apis: [], jobs: [], permissions: [], acceptance: [] },
+      scenarioValue: { bestScene: "待验证", summary: "缺少真实使用界面", scenarios: [] },
+      usabilityScore: { total: 0, scale: "5 分代表更容易上手、使用成本更低", confidence: { level: "低", covered: 0, note: "缺少真实使用界面" }, verdict: "待验证", dimensions: [], easyPoints: [], complexityDrivers: [] },
     };
   }
   const stages = collectStages(ready);
   const structure = unique([...fromDocs, ...pickLayer(playbook?.structure, deriveStructure(ready), stages)], 8);
   const framework = pickLayer(playbook?.framework, deriveFramework(ready), stages);
   const surface = pickLayer(playbook?.surface, deriveSurface(ready), stages);
+  const plainLogic = plainProductLogic(name, ready);
+  const plainInteraction = plainInteractionLogic(ready);
+  const scored = compileScenarioAndUsability(name, ready, playbook);
   return {
-    designFocus: playbook?.designFocus || structure[0] || `${name}的界面侧重点待从更多内页验证`,
-    designLogic: structure,
-    interactionLogic: framework,
+    designFocus: plainLogic,
+    designLogic: unique([plainLogic, ...structure], 8),
+    interactionLogic: unique([...plainInteraction, ...framework], 8),
     strengths: unique(playbook?.strengths || calloutInsights(ready, /任务|可见|产物|引用|权限/), 4),
     weaknesses: unique(playbook?.weaknesses || ready.map((screen) => screen.friction), 4),
     settings: compileSettings(ready, playbook, stages),
@@ -409,12 +580,68 @@ function compileProductFromScreens(name, screens, playbook, docsMap) {
     trackingPlan: compileTracking(ready),
     dataModel: compileDataModel(ready),
     backendDelivery: compileBackend(name, ready),
+    scenarioValue: scored.scenarioValue,
+    usabilityScore: scored.usabilityScore,
   };
 }
 
 function findAudit(audits, name) {
   return (audits || []).find((item) => item.competitorName === name)
     || (audits || []).find((item) => compactName(item.competitorName) && compactName(item.competitorName) === compactName(name));
+}
+
+function observable(screen, field, fallback) {
+  const value = screen?.[field];
+  return isPlaceholder(value) ? fallback : String(value).trim();
+}
+
+function comparisonCell(audit, dimension, screen, focus, fallbackNote) {
+  const screenName = screen?.screen || "证据不足";
+  return {
+    dimension,
+    product: audit.competitorName,
+    focus: unique([focus], 1)[0] || "尚缺可核验的应用内界面",
+    note: screen ? `界面证据：${screenName}` : fallbackNote,
+  };
+}
+
+export function buildTaskChainComparison(audits = []) {
+  const dimensions = ["入口对象", "发起与配置", "执行反馈", "失败恢复", "结果交付", "权限治理"];
+  const cells = [];
+  for (const audit of audits) {
+    const screens = evidencedScreens(audit);
+    if (!screens.length) continue;
+    const entry = exactScreenForStage(screens, "进入") || exactScreenForStage(screens, "发起") || screens[0];
+    const launch = exactScreenForStage(screens, "发起") || exactScreenForStage(screens, "配置") || entry;
+    const execution = exactScreenForStage(screens, "执行");
+    const recovery = screens.find((screen) => /失败|错误|重试|恢复|停止|取消|断点/u.test(`${screen.screen || ""} ${screen.feedback || ""} ${screen.friction || ""}`));
+    const delivery = exactScreenForStage(screens, "交付");
+    const governance = exactScreenForStage(screens, "治理");
+
+    cells.push(
+      comparisonCell(audit, "入口对象", entry,
+        `${observable(entry, "entry", `从「${entry?.screen || "工作台"}」进入`)}；首个对象是${observable(entry, "purpose", audit.designFocus || "任务")}`,
+        "缺少入口界面"),
+      comparisonCell(audit, "发起与配置", launch,
+        observable(launch, "primaryAction", audit.interactionLogic?.[0] || "尚未核验发起动作"),
+        "缺少发起或配置界面"),
+      comparisonCell(audit, "执行反馈", execution,
+        observable(execution, "feedback", audit.interactionLogic?.find((item) => /状态|进度|计划|运行/u.test(item)) || "尚未核验运行反馈"),
+        "缺少执行状态界面"),
+      comparisonCell(audit, "失败恢复", recovery,
+        /失败|错误|重试|恢复|停止|取消|继续|断点/u.test(screenBlob(recovery || {}))
+          ? `${observable(recovery, "friction", "可见异常状态")}；恢复线索：${observable(recovery, "feedback", "未展示")}`
+          : `${audit.weaknesses?.[0] || observable(recovery, "friction", "未发现明确失败恢复控件")}；未核验重试/续跑闭环`,
+        "缺少失败恢复界面"),
+      comparisonCell(audit, "结果交付", delivery,
+        `${observable(delivery, "feedback", "未核验结果反馈")}；用户可执行：${observable(delivery, "primaryAction", "待验证")}`,
+        "缺少结果交付界面"),
+      comparisonCell(audit, "权限治理", governance,
+        `${observable(governance, "primaryAction", "未核验权限动作")}；边界：${observable(governance, "friction", audit.weaknesses?.[0] || "待验证")}`,
+        "缺少权限或组织治理界面"),
+    );
+  }
+  return { dimensions, cells };
 }
 
 export function compileUiAuditFromScreens(analysis) {
@@ -451,6 +678,8 @@ export function compileUiAuditFromScreens(analysis) {
       trackingPlan: compiled.trackingPlan,
       dataModel: compiled.dataModel,
       backendDelivery: compiled.backendDelivery,
+      scenarioValue: compiled.scenarioValue,
+      usabilityScore: compiled.usabilityScore,
       fiveLayers: compiled.fiveLayers,
     });
   }
@@ -464,15 +693,7 @@ export function compileUiAuditFromScreens(analysis) {
     px.backendDelivery = focus.backendDelivery;
   }
   if (audits.some((item) => evidencedScreens(item).length)) {
-    px.comparison = {
-      dimensions: ["入口与信息架构", "任务编排", "状态与失败恢复", "结果交付与治理"],
-      cells: audits.flatMap((audit) => ([
-        { dimension: "入口与信息架构", product: audit.competitorName, focus: audit.designFocus || audit.role, note: audit.designLogic?.[0] || "待从侧栏验证" },
-        { dimension: "任务编排", product: audit.competitorName, focus: audit.designFocus || audit.role, note: audit.interactionLogic?.[0] || "待从输入区验证" },
-        { dimension: "状态与失败恢复", product: audit.competitorName, focus: "交互侧重点", note: audit.interactionLogic?.[1] || audit.weaknesses?.[0] || "待从执行页验证" },
-        { dimension: "结果交付与治理", product: audit.competitorName, focus: audit.designFocus || "待验证", note: audit.strengths?.[0] || "待从结果页验证" },
-      ])),
-    };
+    px.comparison = buildTaskChainComparison(audits);
   }
   return analysis;
 }

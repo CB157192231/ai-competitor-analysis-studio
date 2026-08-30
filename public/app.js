@@ -413,13 +413,13 @@ function renderUiAnalysis() {
   $("#uiScreenAudit").innerHTML = audits.slice(0, 12).map((item, index) => `<article class="ui-screen-card ${item.sourceType === "unverified" ? "unverified" : ""}"><b>${String(index + 1).padStart(2, "0")}</b><h4>${esc(item.usageStage || "待验证")} · ${esc(item.screen)}</h4><p>${esc(item.annotation)}</p><dl><dt>证据</dt><dd>${esc(sourceTypeLabel(item.sourceType))}</dd><dt>入口</dt><dd>${esc(item.entry)}</dd><dt>主操作</dt><dd>${esc(item.primaryAction)}</dd><dt>反馈</dt><dd>${esc(item.feedback)}</dd><dt>摩擦</dt><dd>${esc(item.friction)}</dd></dl></article>`).join("") || '<p class="empty-mini">尚未形成逐屏审计。</p>';
 
   $("#uiLogicColumns").innerHTML = [
-    [`${selected.competitorName} · 产品设计与信息架构`, selected.designLogic?.length ? selected.designLogic : px.designLogic],
-    [`${selected.competitorName} · 交互、权限与失败恢复`, selected.interactionLogic?.length ? selected.interactionLogic : px.interactionLogic],
-  ].map(([title, items]) => `<article class="ui-logic-card"><h4>${esc(title)}</h4><ol>${(items || []).slice(0, 6).map((item) => `<li>${esc(item)}</li>`).join("") || "<li>待补充</li>"}</ol></article>`).join("")
-    + `<article class="ui-focus-banner"><span>${esc(selected.role || "竞品")}</span><strong>设置侧重点：${esc(selected.designFocus || "待从界面验证")}</strong><div class="ui-swot-mini"><div><b>优点</b>${listHtml(selected.strengths, "待验证")}</div><div><b>短板</b>${listHtml(selected.weaknesses, "待验证")}</div></div></article>`
+    [`${selected.competitorName} · 用户怎样开始和完成任务`, selected.designLogic?.length ? selected.designLogic : px.designLogic],
+    [`${selected.competitorName} · 运行中怎样反馈，失败后怎样继续`, selected.interactionLogic?.length ? selected.interactionLogic : px.interactionLogic],
+  ].map(([title, items]) => `<article class="ui-logic-card"><h4>${esc(title)}</h4><ol>${(items || []).slice(0, 3).map((item) => `<li>${esc(item)}</li>`).join("") || "<li>待补充</li>"}</ol></article>`).join("")
+    + `<article class="ui-focus-banner"><span>${esc(selected.role || "竞品")}</span><strong>一句话看懂：${esc(selected.designFocus || "待从界面验证")}</strong><div class="ui-swot-mini"><div><b>做得好的地方</b>${listHtml(selected.strengths, "待验证")}</div><div><b>容易卡住的地方</b>${listHtml(selected.weaknesses, "待验证")}</div></div></article>`
     + ((selected.settings || []).length ? `<div class="ui-settings-grid">${selected.settings.slice(0, 8).map((item) => `<article class="ui-setting-card"><code>${esc(item.name)}</code><h4>${esc(item.purpose)}</h4><p>默认：${esc(item.defaultValue)}</p><p>用户：${esc(item.userImpact)}</p><small>商业：${esc(item.businessIntent)}</small></article>`).join("")}</div>` : "");
   const layers = selected.fiveLayers || {};
-  const layerLabels = [["structure", "结构层 · 信息架构"], ["framework", "框架层 · 布局交互"], ["surface", "表现层 · 可见控件"]];
+  const layerLabels = [["structure", "用户从哪里开始"], ["framework", "页面怎样帮助用户操作"], ["surface", "用户实际能看到什么"]];
   if ($("#uiFiveLayers")) {
     $("#uiFiveLayers").innerHTML = layerLabels.map(([key, label]) => {
       const value = layers[key];
@@ -452,6 +452,18 @@ function renderUiAnalysis() {
   const states = (evidencedStages.length ? evidencedStages : Object.keys(stageCopy)).slice(0, 6).map((title) => [title, stageCopy[title]]);
   $("#uiStateFlow").innerHTML = states.map(([title, copy]) => `<article class="ui-state"><strong>${title}</strong><p>${copy}</p></article>`).join("");
 
+  const scenarioValue = selected.scenarioValue || {};
+  $("#uiBestScene").innerHTML = `<span>最能体现价值的场景</span><strong>${esc(scenarioValue.bestScene || "待验证")}</strong><p>${esc(scenarioValue.summary || "需要更多真实任务证据")}</p>`;
+  $("#uiScenarioGrid").innerHTML = (scenarioValue.scenarios || []).map((item) => `<article class="ui-scenario-card"><div><span>适合度</span><b>${Number(item.fit || 0).toFixed(1)}<small>/5</small></b></div><h4>${esc(item.name)}</h4><p><strong>适合做：</strong>${esc(item.work)}</p><p><strong>为什么：</strong>${esc(item.why)}</p><small>界面证据：${esc(item.evidenceScreen)}<br>限制：${esc(item.limitation)}</small></article>`).join("") || '<p class="empty-mini">尚未形成场景价值判断。</p>';
+  $("#uiScenarioComparison").innerHTML = `<h4>三个产品最适合的工作不同</h4><div>${productAudits.map((item) => `<article><span>${esc(item.competitorName)}</span><strong>${esc(item.scenarioValue?.bestScene || "待验证")}</strong><small>${esc(item.scenarioValue?.summary || "")}</small></article>`).join("")}</div>`;
+
+  const usability = selected.usabilityScore || {};
+  $("#uiUsabilityVerdict").innerHTML = `<div><span>上手便利度</span><strong>${Number(usability.total || 0).toFixed(1)}<small>/5</small></strong><em>证据置信度：${esc(usability.confidence?.level || "低")}</em></div><p>${esc(usability.verdict || "待验证")}</p><small>${esc(usability.scale || "5 分代表更容易上手、使用成本更低")}；${esc(usability.confidence?.note || "")}</small>`;
+  $("#uiUsabilityDimensions").innerHTML = (usability.dimensions || []).map((item) => `<article><header><strong>${esc(item.label)}</strong><b>${Number(item.score || 0).toFixed(1)}</b></header><div class="ui-score-track"><i style="width:${Math.max(0, Math.min(100, Number(item.score || 0) * 20))}%"></i></div><p>${esc(item.reason)}</p><small>证据：${esc(item.evidenceScreen)}</small></article>`).join("") || '<p class="empty-mini">尚未形成上手成本评分。</p>';
+  const usabilityProducts = productAudits.filter((item) => item.usabilityScore?.dimensions?.length);
+  const usabilityLabels = usabilityProducts[0]?.usabilityScore?.dimensions?.map((item) => item.label) || [];
+  $("#uiUsabilityComparison").innerHTML = usabilityProducts.length ? `<table class="data-table"><thead><tr><th>使用环节</th>${usabilityProducts.map((item) => `<th>${esc(item.competitorName)}</th>`).join("")}</tr></thead><tbody><tr><th>综合分</th>${usabilityProducts.map((item) => `<td><strong>${Number(item.usabilityScore.total || 0).toFixed(1)}/5</strong><br><small>${esc(item.usabilityScore.confidence?.level || "低")}置信度</small></td>`).join("")}</tr>${usabilityLabels.map((label, index) => `<tr><th>${esc(label)}</th>${usabilityProducts.map((item) => { const dimension = item.usabilityScore.dimensions[index] || {}; return `<td><strong>${Number(dimension.score || 0).toFixed(1)}</strong><br><small>${esc(dimension.reason || "待验证")}</small></td>`; }).join("")}</tr>`).join("")}</tbody></table>` : '<p class="empty-mini">尚未形成上手成本横向对比。</p>';
+
   const swimlanes = (selected.swimlanes || px.swimlanes || []).slice(0, 6);
   const lanes = [["用户", "user"], ["前端", "frontend"], ["Agent", "agent"], ["运营", "operations"], ["数据", "data"]];
   $("#uiSwimlane").innerHTML = swimlanes.length ? `<table><thead><tr><th>泳道 / 阶段</th>${swimlanes.map((item) => `<th>${esc(item.stage)}</th>`).join("")}</tr></thead><tbody>${lanes.map(([label, key]) => `<tr><th>${label}</th>${swimlanes.map((item) => `<td>${esc(item[key])}</td>`).join("")}</tr>`).join("")}</tbody></table>` : '<p class="empty-mini">尚未形成五方泳道。</p>';
@@ -474,8 +486,8 @@ function renderUiAnalysis() {
   const dimensions = comparison.dimensions?.length ? comparison.dimensions : [...new Set((comparison.cells || []).map((item) => item.dimension))];
   const cellMap = new Map((comparison.cells || []).map((item) => [`${item.dimension}::${item.product}`, item]));
   $("#uiComparisonTable").innerHTML = products.length
-    ? `<table class="data-table"><thead><tr><th>比较维度</th>${products.map((name) => `<th>${esc(name)}</th>`).join("")}</tr></thead><tbody>${dimensions.map((dimension) => `<tr><th>${esc(dimension)}</th>${products.map((name) => { const cell = cellMap.get(`${dimension}::${name}`) || {}; return `<td><strong>${esc(cell.focus || "待验证")}</strong><br><small>${esc(cell.note || "")}</small></td>`; }).join("")}</tr>`).join("")}</tbody></table>`
-    : '<p class="empty-mini">尚未形成横向对比。重新调研后会按入口、编排、恢复、交付比较各产品侧重点。</p>';
+    ? `<table class="data-table"><thead><tr><th>用户要做的事</th>${products.map((name) => `<th>${esc(name)}</th>`).join("")}</tr></thead><tbody>${dimensions.map((dimension) => `<tr><th>${esc(dimension)}</th>${products.map((name) => { const cell = cellMap.get(`${dimension}::${name}`) || {}; return `<td><strong>${esc(cell.focus || "待验证")}</strong><br><small>${esc(cell.note || "")}</small></td>`; }).join("")}</tr>`).join("")}</tbody></table>`
+    : '<p class="empty-mini">尚未形成横向对比。重新调研后会比较从哪里开始、怎样操作、卡住后怎么办和最后怎样拿到结果。</p>';
   $("#uiFocusCards").innerHTML = productAudits.map((item) => `<article class="ui-focus-card"><span>${esc(item.role || "竞品")}</span><h4>${esc(item.competitorName)}</h4><p>${esc(item.designFocus || "侧重点待验证")}</p><small>优点：${esc(item.strengths?.join("、") || "待验证")} ｜ 短板：${esc(item.weaknesses?.join("、") || "待验证")}</small></article>`).join("");
 
   const fromUi = px.businessFromUi || {};
@@ -483,8 +495,8 @@ function renderUiAnalysis() {
   const summary = [
     ["需求", (fromUi.demand || []).join("；") || (a.userNeeds?.painPoints || []).slice(0, 3).join("；") || "待验证"],
     ["核心场景", scenarios],
-    ["界面里的收费点", (fromUi.monetizationSurfaces || []).join("；") || a.economics?.model || "待从额度、席位、升级入口验证"],
-    ["成本驱动", (fromUi.costDrivers || []).join("；") || "长任务、重试、存储和人工审阅"],
+    ["怎样收费", (fromUi.monetizationSurfaces || []).join("；") || a.economics?.model || "待从额度、席位、升级入口验证"],
+    ["开发与运行成本", [...(a.opportunities || []).filter((item) => Number(item.effort) >= 7).slice(0, 2).map((item) => `${item.title}（投入 ${item.effort}/10）`), ...(fromUi.costDrivers || []).slice(0, 2)].join("；") || "待估算"],
     ["运营闭环", (fromUi.operatingLoops || []).join("；") || `${a.economics?.retention || "待验证"}`],
     ["发展前景", fromUi.outlook || "个人工具 → 团队 Agent → 企业平台；数据飞轮与技能生态形成壁垒"],
   ];
