@@ -1,0 +1,23 @@
+{
+  "name": "ai-competitor-analyst",
+  "version": "1.0.0",
+  "description": "Evidence-led AI product competitor analysis with visual PPTX and Word reporting",
+  "author": {
+    "name": "AI Product Intelligence Lab"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "AI 竞品分析 Agent",
+    "shortDescription": "把证据转成 AI 产品竞争决策与可视化报告。",
+    "longDescription": "基于需求、行业周期、产品五层、AI 九维、三大数据系统和商业效率完成证据化竞品分析，并配套本地 HTML 看板、带演讲备注的 PPTX 和 Word 报告。",
+    "developerName": "AI Product Intelligence Lab",
+    "category": "Productivity",
+    "capabilities": ["Research", "Analyze", "Visualize", "Write"],
+    "brandColor": "#11231F",
+    "defaultPrompt": [
+      "分析这款 AI 产品及其三个核心竞品。",
+      "把竞品证据整理成可视化决策报告。",
+      "启动本地 AI 竞品分析看板。"
+    ]
+  }
+}

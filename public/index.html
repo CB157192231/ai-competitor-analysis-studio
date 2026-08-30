@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#11231f">
+  <title>AI 竞品分析系统</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark" aria-hidden="true"><span></span><span></span><span></span></div>
+        <div><strong>RIVAL/AI</strong><small>COMPETITOR INTELLIGENCE</small></div>
+      </div>
+
+      <nav class="side-nav" aria-label="主导航">
+        <button class="nav-item active" data-view="brief"><span class="nav-index">01</span><span>分析任务</span></button>
+        <button class="nav-item" data-view="dashboard"><span class="nav-index">02</span><span>竞争看板</span></button>
+        <button class="nav-item" data-view="deepdive"><span class="nav-index">03</span><span>深度拆解</span></button>
+        <button class="nav-item" data-view="ui-analysis"><span class="nav-index">04</span><span>UI 分析</span></button>
+        <button class="nav-item" data-view="evidence"><span class="nav-index">05</span><span>证据与评分</span></button>
+        <button class="nav-item" data-view="roadmap"><span class="nav-index">06</span><span>建议路线图</span></button>
+      </nav>
+
+      <div class="method-stack">
+        <p class="eyebrow">METHOD STACK</p>
+        <div class="method-line"><span>需求</span><i></i><b>01</b></div>
+        <div class="method-line"><span>行业</span><i></i><b>02</b></div>
+        <div class="method-line"><span>五层拆解</span><i></i><b>03</b></div>
+        <div class="method-line"><span>AI 专项</span><i></i><b>04</b></div>
+        <div class="method-line"><span>数据与商业</span><i></i><b>05</b></div>
+      </div>
+
+      <button class="model-status" id="openSettings">
+        <span class="status-dot" id="statusDot"></span>
+        <span><small>MODEL CONNECTION</small><strong id="modelStatus">正在检查…</strong></span>
+      </button>
+    </aside>
+
+    <main>
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">LOCAL-FIRST ANALYSIS WORKSPACE</p>
+          <h1 id="pageTitle">定义分析任务</h1>
+        </div>
+        <div class="top-actions">
+          <button class="btn btn-ghost" id="openProjects">历史项目</button>
+          <button class="btn btn-ghost" id="importBtn">导入 JSON</button>
+          <button class="btn btn-ghost" id="exportJsonBtn">保存项目</button>
+          <button class="btn btn-dark" id="openExport">导出报告 <span>↗</span></button>
+        </div>
+      </header>
+
+      <section class="view active" id="view-brief">
+        <div class="brief-grid">
+          <div class="brief-main">
+            <div class="section-heading">
+              <div><span class="section-no">01</span><div><p class="eyebrow">ANALYSIS BRIEF</p><h2>先写清要做的决策</h2></div></div>
+              <p>目标越具体，竞品选择、证据权重和结论越可靠。</p>
+            </div>
+
+            <div class="form-grid">
+              <label class="field field-wide"><span>项目标题</span><input id="briefTitle" value="AI 产品竞品分析"></label>
+              <label class="field"><span>目标产品</span><input id="briefProduct" placeholder="例如：我的 AI 助手"></label>
+              <label class="field"><span>汇报受众</span><input id="briefAudience" value="产品与业务负责人"></label>
+              <label class="field field-wide"><span>分析目标</span><textarea id="briefObjective" rows="2">识别差异化机会，确定下一阶段产品与商业投入。</textarea></label>
+              <label class="field field-wide decision-field"><span>本次必须回答的决策问题</span><textarea id="briefDecision" rows="3">下一阶段最值得投入的产品机会是什么？</textarea></label>
+            </div>
+
+            <div class="subsection-head">
+              <div><p class="eyebrow">COMPETITOR SET</p><h3>分析对象</h3></div>
+              <div><span class="hint">只填目标产品也可以自动发现竞品</span> <button class="btn btn-small" id="addCompetitor">+ 添加竞品</button></div>
+            </div>
+            <div class="competitor-list" id="competitorList"></div>
+
+            <div class="research-options">
+              <label class="research-option"><input type="checkbox" id="autoResearch" checked><span><strong>自动联网调研</strong><small>核对商业资料，并单独检索实际应用工作台、任务执行与结果界面</small></span></label>
+              <label class="research-option"><input type="checkbox" id="autoDiscover" checked><span><strong>自动发现竞品</strong><small>竞品不足时补充 3 个直接竞品和 1 个间接竞品/标杆</small></span></label>
+            </div>
+
+            <div class="subsection-head">
+              <div><p class="eyebrow">EVIDENCE INPUT</p><h3>证据、数据与已知事实</h3></div>
+              <span class="hint">可选：内部数据与访谈会和公开资料一起分析</span>
+            </div>
+            <label class="field field-wide"><textarea id="sourceNotes" class="source-area" rows="8" placeholder="建议按“来源｜日期｜事实/数据｜URL”逐行填写。可粘贴访谈摘要、产品数据、价格、功能验证、行业报告摘录等。"></textarea></label>
+
+            <div class="run-panel">
+              <div><span class="run-icon">✦</span><div><strong>联网调研并运行七层分析</strong><small>搜索证据 → 发现竞品 → 需求 → 五层 → AI → 数据商业 → 决策</small></div></div>
+              <div class="run-actions"><button class="btn btn-ghost-light" id="loadDemo">载入演示</button><button class="btn btn-accent" id="analyzeBtn">开始调研 <span>→</span></button></div>
+            </div>
+          </div>
+
+          <aside class="brief-side">
+            <p class="eyebrow">ANALYSIS CONTRACT</p>
+            <h3>系统会交付什么</h3>
+            <ol class="contract-list">
+              <li><span>01</span><div><strong>行业与时机</strong><p>阶段、规模信号、里程碑、下一转折</p></div></li>
+              <li><span>02</span><div><strong>产品五层拆解</strong><p>定位、范围、流程、交互与体验</p></div></li>
+              <li><span>03</span><div><strong>UI 与实现口径</strong><p>真实界面、设置对比、泳道、埋点、API 与任务</p></div></li>
+              <li><span>04</span><div><strong>AI 九维评分</strong><p>模型、体验、信任、增长与效率</p></div></li>
+              <li><span>05</span><div><strong>商业与数据</strong><p>北极星、三级火箭与从界面读出的收费点</p></div></li>
+              <li><span>06</span><div><strong>决策材料</strong><p>可视化 PPTX、演讲备注、Word 报告</p></div></li>
+            </ol>
+            <div class="evidence-rule"><span>!</span><p><strong>证据纪律</strong><br>没有来源的数据会被标记为“待验证”，不会被包装成确定事实。</p></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view" id="view-dashboard">
+        <div id="dashboardEmpty" class="empty-state">
+          <div class="empty-orbit"><span></span><i></i><b></b></div>
+          <h2>看板正在等待分析数据</h2><p>返回“分析任务”运行 DeepSeek，或载入演示案例。</p>
+          <button class="btn btn-dark" data-go="brief">开始定义任务</button>
+        </div>
+        <div id="dashboardContent" class="analysis-content hidden">
+          <div class="verdict-band">
+            <div><p class="eyebrow">EXECUTIVE VERDICT</p><h2 id="verdictHeadline"></h2><p id="verdictText"></p></div>
+            <div class="verdict-meta"><div><span id="competitorCount">0</span><small>分析对象</small></div><div><span id="evidenceCount">0</span><small>证据条目</small></div><div><span id="averageScore">0</span><small>本品总分</small></div></div>
+          </div>
+
+          <div class="research-band" id="researchBand"></div>
+
+          <div class="viz-grid">
+            <article class="viz-card card-span-7"><div class="card-head"><div><p class="eyebrow">WEIGHTED SCORE</p><h3>竞争综合评分</h3></div><span>0–10</span></div><div id="scoreBars" class="score-bars"></div></article>
+            <article class="viz-card card-span-5 dark-card"><div class="card-head"><div><p class="eyebrow">NORTH STAR</p><h3>共同的判断坐标</h3></div></div><strong class="northstar-value" id="northStar"></strong><p id="northStarWhy"></p><div id="guardrails" class="tag-list"></div></article>
+            <article class="viz-card card-span-8"><div class="card-head"><div><p class="eyebrow">DIMENSION HEATMAP</p><h3>九维能力热力图</h3></div><span>分数可直接校正</span></div><div class="heatmap-wrap"><table class="heatmap" id="heatmap"></table></div></article>
+            <article class="viz-card card-span-4"><div class="card-head"><div><p class="eyebrow">MARKET TIMING</p><h3>行业阶段</h3></div></div><div class="stage-value" id="marketStage"></div><p id="marketTrend"></p><div class="signal-list" id="marketSignals"></div></article>
+            <article class="viz-card card-span-12"><div class="card-head"><div><p class="eyebrow">POSITIONING MAP</p><h3>体验深度 × AI 能力</h3></div><span>气泡大小 = 市场匹配</span></div><div id="positionMap" class="position-map"></div></article>
+            <article class="viz-card card-span-12"><div class="card-head"><div><p class="eyebrow">THREE ROCKETS</p><h3>商业效率三级火箭</h3></div></div><div class="rockets" id="rockets"></div></article>
+          </div>
+          <div class="summary-grid"><article><p class="eyebrow">KEY INSIGHTS</p><h3>关键洞察</h3><ol id="insightList"></ol></article><article><p class="eyebrow">RECOMMENDED ACTIONS</p><h3>建议动作</h3><ol id="actionList"></ol></article></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-deepdive">
+        <div class="page-intro"><div><p class="eyebrow">DEEP ANALYSIS</p><h2>从用户需求到产品与数据系统</h2></div><p>把评分拆回用户场景、产品五层、AI 能力和可衡量的数据系统。</p></div>
+        <div id="deepDiveEmpty" class="empty-inline">尚无分析数据。</div>
+        <div id="deepDiveContent" class="hidden deep-dive-content">
+          <div class="deep-section"><div class="section-title"><p class="eyebrow">USER NEEDS</p><h3>用户、场景与机会问题</h3></div><div id="personaCards" class="persona-grid"></div><div id="kanoGrid" class="kano-grid"></div><div id="hmwList" class="hmw-list"></div></div>
+          <div class="deep-section"><div class="section-title"><p class="eyebrow">PRODUCT EXPERIENCE AUDIT</p><h3>前端产品设计与交互逻辑</h3></div><div id="designLogicGrid" class="logic-grid"></div><div id="interfaceAuditGrid" class="interface-audit-grid"></div></div>
+          <div class="deep-section"><div class="section-title"><p class="eyebrow">USER SWIMLANE</p><h3>用户、前端、Agent、运营与数据泳道</h3></div><div id="swimlaneTable" class="table-card swimlane-wrap"></div></div>
+          <div class="deep-section"><div class="section-title"><p class="eyebrow">FIVE LAYERS</p><h3>逐品产品五层拆解</h3><p>结构层、框架层、表现层从该产品的真实工作台截图反推：信息架构、布局交互、可见控件；没有对应界面时才写待验证。</p></div><div id="competitorDeepDives" class="competitor-deep-list"></div></div>
+          <div class="deep-section"><div class="section-title"><p class="eyebrow">DATA SYSTEMS</p><h3>指标、埋点与数据库搭建逻辑</h3></div><div id="dataSystemsGrid" class="data-systems-grid"></div><div id="trackingPlanTable" class="table-card"></div><div id="dataModelGrid" class="data-model-grid"></div><div id="instrumentationTable" class="table-card"></div></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-ui-analysis">
+        <div class="page-intro"><div><p class="eyebrow">FRONTEND PRODUCT AUDIT</p><h2>界面证据必须解释产品如何运转</h2></div><p>从截图证据回推信息架构、交互状态、跨角色流程、数据埋点和实现底座。</p></div>
+        <div id="uiAnalysisEmpty" class="empty-inline">当前项目还没有 UI 分析数据。重新调研后系统会按逐屏证据输出。</div>
+        <div id="uiAnalysisContent" class="hidden ui-analysis-content">
+          <div class="ui-product-switcher"><div><p class="eyebrow">PRODUCT-BY-PRODUCT AUDIT</p><strong>逐产品 UI 证据</strong></div><div id="uiProductTabs" class="ui-product-tabs"></div></div>
+          <section class="ui-audit-section ui-evidence-section"><div class="ui-section-head"><div><span>01</span><p class="eyebrow">INTERFACE EVIDENCE</p><h3>前端界面证据与重点标注</h3></div><p>以真实截图，而非营销图，还原其产品交互细节以及底层逻辑。</p></div><div class="ui-evidence-layout"><div id="uiEvidenceFigure" class="ui-evidence-figure"></div><div id="uiScreenAudit" class="ui-screen-audit"></div></div></section>
+          <section class="ui-audit-section"><div class="ui-section-head"><div><span>02</span><p class="eyebrow">PRODUCT & INTERACTION</p><h3>产品设计、信息架构与交互逻辑</h3></div><p>结构层看对象与页面流，框架层看布局与控件，表现层看截图上的视觉组织。</p></div><div id="uiFiveLayers" class="five-layer-grid"></div><p class="ui-layer-note">以下结构/框架/表现由当前产品已核验截图与官方功能树编译，不复用其他产品的套话。</p><div id="uiDocsMap"></div><div id="uiLogicColumns" class="ui-logic-columns"></div><div id="uiStateFlow" class="ui-state-flow"></div></section>
+          <section class="ui-audit-section"><div class="ui-section-head"><div><span>03</span><p class="eyebrow">FIVE-PARTY SWIMLANE</p><h3>用户／前端／Agent／运营／数据五方泳道</h3></div></div><div id="uiSwimlane" class="ui-swimlane"></div></section>
+          <section class="ui-audit-section"><div class="ui-section-head"><div><span>04</span><p class="eyebrow">TRACKING PLAN</p><h3>8 个关键埋点及对应产品决策</h3></div></div><div id="uiTrackingGrid" class="ui-tracking-grid"></div></section>
+          <section class="ui-audit-section"><div class="ui-section-head"><div><span>05</span><p class="eyebrow">DATA FOUNDATION</p><h3>数据库实体、租户隔离、审计与任务恢复</h3></div></div><div id="uiDataPrinciples" class="ui-data-principles"></div><div id="uiEntityGrid" class="ui-entity-grid"></div></section>
+          <section class="ui-audit-section"><div class="ui-section-head"><div><span>06</span><p class="eyebrow">BACKEND DELIVERY</p><h3>倒推给后端的最小交付口径</h3></div><p>从界面状态、权限和结果回推 API、异步任务、权限与验收标准。</p></div><div id="uiBackendSummary" class="ui-backend-summary"></div><div id="uiApiGrid" class="ui-api-grid"></div><div id="uiJobGrid" class="ui-job-grid"></div></section>
+          <section class="ui-audit-section"><div class="ui-section-head"><div><span>07</span><p class="eyebrow">HORIZONTAL COMPARISON</p><h3>设置侧重点横向对比</h3></div><p>每个产品只保留它真正押注的交互与设置，而不是功能清单。</p></div><div id="uiComparisonTable" class="ui-comparison-wrap"></div><div id="uiFocusCards" class="ui-focus-cards"></div></section>
+          <section class="ui-audit-section ui-summary-section"><div class="ui-section-head"><div><span>08</span><p class="eyebrow">BUSINESS FROM UI</p><h3>这些设置如何体现商业逻辑</h3></div></div><div id="uiBusinessSummary" class="ui-business-summary"></div></section>
+        </div>
+      </section>
+
+      <section class="view" id="view-evidence">
+        <div class="page-intro"><div><p class="eyebrow">EVIDENCE & SCORE AUDIT</p><h2>结论必须能回到证据</h2></div><p>逐条检查来源、日期、支持结论和置信度；九维评分可在看板直接修正。</p></div>
+        <div id="evidenceEmpty" class="empty-inline">尚无分析数据。</div>
+        <div id="evidenceContent" class="hidden">
+          <div class="audit-strip" id="auditStrip"></div>
+          <div class="audit-findings hidden" id="auditFindings"></div>
+          <div class="table-card"><table class="data-table"><thead><tr><th>ID</th><th>来源</th><th>支持结论</th><th>日期 / 类型</th><th>置信度</th><th>被引用</th></tr></thead><tbody id="evidenceTable"></tbody></table></div>
+          <div class="limitations"><p class="eyebrow">KNOWN LIMITATIONS</p><div id="limitations"></div></div>
+        </div>
+      </section>
+
+      <section class="view" id="view-roadmap">
+        <div class="page-intro"><div><p class="eyebrow">DECISION ROADMAP</p><h2>从洞察到行动</h2></div><p>高影响、高信心、可控投入的机会优先；低信心机会先做证据实验。</p></div>
+        <div id="roadmapEmpty" class="empty-inline">尚无分析数据。</div>
+        <div id="roadmapContent" class="hidden">
+          <div class="opportunity-layout">
+            <article class="viz-card"><div class="card-head"><div><p class="eyebrow">OPPORTUNITY MATRIX</p><h3>影响 × 投入</h3></div><span>气泡 = 信心</span></div><div id="opportunityMap" class="opportunity-map"></div></article>
+            <div class="opportunity-list" id="opportunityList"></div>
+          </div>
+          <div class="roadmap-columns" id="roadmapColumns"></div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="settingsDialog">
+    <form method="dialog" class="dialog-card" id="settingsForm">
+      <div class="dialog-head"><div><p class="eyebrow">MODEL CONNECTION</p><h2>DeepSeek 设置</h2></div><button class="icon-btn" type="button" data-close-settings aria-label="关闭">×</button></div>
+      <div class="security-note"><span>🔒</span><p>密钥仅保存在本地服务内存，不写入 HTML、LocalStorage 或项目 JSON。服务重启后需重新输入。</p></div>
+      <label class="field"><span>API Key</span><input type="password" id="apiKey" autocomplete="off" placeholder="sk-…"></label>
+      <label class="field"><span>Base URL</span><input id="baseUrl" value="https://api.deepseek.com"></label>
+      <label class="field"><span>模型</span><input id="modelName" value="deepseek-v4-flash" list="models"><datalist id="models"><option value="deepseek-v4-flash"><option value="deepseek-v4-pro"></datalist></label>
+      <div class="dialog-actions"><button class="btn btn-ghost" type="button" data-close-settings>取消</button><button class="btn btn-dark" id="saveSettings" type="submit">保存并测试连接</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="projectsDialog">
+    <div class="dialog-card projects-dialog">
+      <div class="dialog-head"><div><p class="eyebrow">PROJECT HISTORY</p><h2>历史调研项目</h2><p>载入后可继续修改、重新调研或导出。</p></div><button class="icon-btn" id="closeProjects" aria-label="关闭">×</button></div>
+      <div class="projects-toolbar"><label class="project-search"><span>搜索</span><input id="projectSearch" placeholder="产品、标题或文件夹"></label><button class="btn btn-ghost" id="refreshProjects">刷新</button></div>
+      <div class="project-list" id="projectList"><p class="project-empty">正在读取历史项目…</p></div>
+    </div>
+  </dialog>
+
+  <dialog id="exportDialog">
+    <div class="dialog-card export-dialog">
+      <div class="dialog-head"><div><p class="eyebrow">EXPORT CENTER</p><h2>生成决策材料</h2></div><button class="icon-btn" id="closeExport" aria-label="关闭">×</button></div>
+      <div class="export-destination" id="exportDestination">默认保存到：正在读取…</div>
+      <button class="export-option" id="exportPptx"><span class="file-badge ppt">P</span><div><strong>可视化汇报 PPTX</strong><p>10 页决策叙事、可编辑图表、逐页演讲备注与来源</p></div><b>→</b></button>
+      <button class="export-option" id="exportDocx"><span class="file-badge doc">W</span><div><strong>完整分析报告 DOCX</strong><p>执行摘要、方法、评分、单品拆解、商业效率、路线图与证据</p></div><b>→</b></button>
+      <button class="export-option" id="exportJsonFromDialog"><span class="file-badge json">{ }</span><div><strong>项目数据 JSON</strong><p>用于归档、二次编辑或迁移到另一台电脑</p></div><b>→</b></button>
+    </div>
+  </dialog>
+
+  <input type="file" id="importFile" accept="application/json,.json" hidden>
+  <div class="loading-overlay hidden" id="loadingOverlay"><div class="loader"><span></span><span></span><span></span></div><h2 id="loadingTitle">正在分析</h2><p id="loadingText">DeepSeek 正在组织证据与结论，请勿关闭页面。</p></div>
+  <div class="toast" id="toast" role="status"></div>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

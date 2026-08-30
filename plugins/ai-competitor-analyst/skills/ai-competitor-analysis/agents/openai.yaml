@@ -1,0 +1,4 @@
+interface:
+  display_name: "AI 竞品分析"
+  short_description: "自动联网、证据化拆解 AI 产品并形成决策材料"
+  default_prompt: "请先联网搜索并核对目标产品，自动发现必要竞品，再按用户需求、行业信号、产品五层、AI 九维、三大数据系统和商业效率分析；区分事实与推断，为每个评分和机会绑定有效证据 ID，并给出有负责人、实验和成功标准的 Now/Next/Later 建议。"
