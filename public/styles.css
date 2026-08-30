@@ -367,7 +367,8 @@ dialog::backdrop { background: rgba(9, 20, 17, .68); backdrop-filter: blur(5px);
 .ui-bakeoff-wrap { overflow-x: auto; }
 .bakeoff-table th small { font-weight: 400; }
 .bakeoff-cell strong { display: block; }
-.bakeoff-cell.not_run { color: var(--muted); }
+.bakeoff-cell.not_run.has-path { color: var(--ink); border-left: 3px solid var(--line); }
+.bakeoff-path-link { display: inline-block; margin-top: 6px; color: var(--mint); font-size: 10px; font-weight: 700; }
 .bakeoff-cell.passed { border-left: 3px solid var(--mint); }
 .bakeoff-cell.partial { border-left: 3px solid var(--accent); }
 .bakeoff-cell.failed { border-left: 3px solid var(--red); }

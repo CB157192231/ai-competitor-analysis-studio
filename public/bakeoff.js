@@ -1,8 +1,25 @@
 const STATUSES = ["not_run", "passed", "partial", "failed"];
 const SOURCES = ["unrun", "measured", "inferred"];
 const RECOVERIES = ["not_run", "yes", "no", "not_applicable"];
+const PATH_CHANNELS = ["none", "official_web", "official_tutorial", "video_walkthrough", "secondary_walkthrough"];
+const PATH_STAGES = ["进入", "发起", "配置", "执行", "交付", "失败", "治理"];
+const UI_PATH_TYPES = ["actual_app_ui", "official_tutorial", "video_walkthrough", "secondary_walkthrough", "user_supplied"];
 const INFERRED_CLAIM_RE = /具备此能力|支持该任务|可以完成|能够完成|官网显示|功能清单|理应|应该能|宣传称/u;
 const PLACEHOLDER_RE = /^(待验证|待补充|待定义|未记录|未跑|)$/u;
+const TASK_PATH_NEEDLES = {
+  T01: /文件|文档|交付物|导出|本地|幻灯|ppt|word|整理|可编辑/iu,
+  T02: /研究|来源|引用|网页|对比|检索|报告/iu,
+  T03: /技能|专家|套件|岗位|角色/iu,
+  T04: /连接器|写回|集成|外部系统|crm|同步/iu,
+  T05: /失败|重试|恢复|中断|续跑|停止/iu,
+};
+const CHANNEL_LABEL = {
+  none: "未见公开操作路径",
+  official_web: "官方网页版",
+  official_tutorial: "官方教程",
+  video_walkthrough: "实操视频",
+  secondary_walkthrough: "实操图文",
+};
 
 export const BAKEOFF_METRICS = ["是否交差", "人工介入次数", "首次可用结果(分钟)", "产物能否直接用", "失败后能否继续", "本次费用"];
 
@@ -76,6 +93,73 @@ function nullableBoolean(value) {
   return null;
 }
 
+function safeHttpUrl(value) {
+  try {
+    const url = new URL(String(value || "").trim());
+    return ["http:", "https:"].includes(url.protocol) ? url.href : "";
+  } catch {
+    return "";
+  }
+}
+
+export function emptyPublicPath() {
+  return { channel: "none", url: "", stagesSeen: [], notes: "未见公开操作路径" };
+}
+
+export function normalizePublicPath(raw) {
+  const incoming = raw && typeof raw === "object" ? raw : {};
+  const url = safeHttpUrl(incoming.url);
+  let channel = PATH_CHANNELS.includes(incoming.channel) ? incoming.channel : "none";
+  const stagesSeen = [...new Set((Array.isArray(incoming.stagesSeen) ? incoming.stagesSeen : [])
+    .map((item) => String(item || "").trim())
+    .filter((item) => PATH_STAGES.includes(item)))].slice(0, 5);
+  const notes = text(incoming.notes);
+  if (channel !== "none" && !url) channel = "none";
+  if (channel === "none") return emptyPublicPath();
+  return {
+    channel,
+    url,
+    stagesSeen,
+    notes: notes || "有公开操作路径，不是实测交差",
+  };
+}
+
+function channelFromSourceType(sourceType) {
+  return {
+    actual_app_ui: "official_web",
+    official_tutorial: "official_tutorial",
+    video_walkthrough: "video_walkthrough",
+    secondary_walkthrough: "secondary_walkthrough",
+    user_supplied: "official_web",
+  }[sourceType] || "none";
+}
+
+function auditBlob(screen) {
+  return [screen?.screen, screen?.purpose, screen?.annotation, screen?.usageStage, screen?.primaryAction, screen?.feedback]
+    .map((item) => String(item || "")).join(" ");
+}
+
+function screensForProduct(analysis, product) {
+  const audits = analysis?.productExperience?.competitorAudits || [];
+  const audit = audits.find((item) => namesMatch(item?.competitorName, product));
+  return (audit?.interfaceAudit || []).filter((screen) => UI_PATH_TYPES.includes(screen?.sourceType) && safeHttpUrl(screen?.sourceUrl));
+}
+
+function publicPathFromUi(analysis, product, task) {
+  const screens = screensForProduct(analysis, product);
+  if (!screens.length) return emptyPublicPath();
+  const needle = TASK_PATH_NEEDLES[task.id] || new RegExp(compactName(task.name).slice(0, 6) || "_{8}");
+  const picked = screens.filter((screen) => needle.test(auditBlob(screen)));
+  if (!picked.length) return emptyPublicPath();
+  const best = picked.find((item) => /交付|执行/u.test(item.usageStage || "")) || picked[0];
+  return normalizePublicPath({
+    channel: channelFromSourceType(best.sourceType),
+    url: best.sourceUrl,
+    stagesSeen: picked.map((item) => item.usageStage).filter((item) => PATH_STAGES.includes(item)),
+    notes: text(best.annotation || best.purpose, "界面证据里能看到这条任务的操作路径"),
+  });
+}
+
 export function emptyRun(product) {
   return {
     product,
@@ -89,6 +173,7 @@ export function emptyRun(product) {
     cost: "未记录",
     notes: "未跑",
     evidenceIds: [],
+    publicPath: emptyPublicPath(),
   };
 }
 
@@ -99,14 +184,22 @@ export function normalizeRun(run, product, researchMode = "manual") {
   let source = SOURCES.includes(incoming.source) ? incoming.source : (status === "not_run" ? "unrun" : "inferred");
   const notes = text(incoming.notes, status === "not_run" ? "未跑" : "");
   const evidenceIds = Array.isArray(incoming.evidenceIds) ? incoming.evidenceIds.map((item) => String(item || "").trim()).filter(Boolean) : [];
+  const publicPath = normalizePublicPath(incoming.publicPath);
   const looksInferred = source === "inferred"
     || INFERRED_CLAIM_RE.test(notes)
     || (status !== "not_run" && PLACEHOLDER_RE.test(notes) && !evidenceIds.length);
   if (status !== "not_run" && researchMode !== "demo") {
-    if (source !== "measured" || (looksInferred && !evidenceIds.length)) return emptyRun(product);
+    if (source !== "measured" || (looksInferred && !evidenceIds.length)) {
+      return { ...emptyRun(product), publicPath, evidenceIds };
+    }
   }
   if (status === "not_run") {
-    return { ...base, notes: notes && !PLACEHOLDER_RE.test(notes) ? notes : "未跑", evidenceIds };
+    return {
+      ...base,
+      notes: notes && !PLACEHOLDER_RE.test(notes) ? notes : "未跑",
+      evidenceIds,
+      publicPath,
+    };
   }
   return {
     product,
@@ -120,6 +213,7 @@ export function normalizeRun(run, product, researchMode = "manual") {
     cost: text(incoming.cost, "未记录"),
     notes: notes || "实测记录不完整",
     evidenceIds,
+    publicPath,
   };
 }
 
@@ -178,24 +272,31 @@ export function summarizeBakeoff(tasks = [], products = []) {
     };
   });
   const ranTasks = tasks.filter((task) => task.runs.some((run) => run.status !== "not_run")).length;
+  const pathRuns = tasks.reduce((sum, task) => sum + task.runs.filter((run) => run.publicPath?.channel && run.publicPath.channel !== "none").length, 0);
+  const pathTasks = tasks.filter((task) => task.runs.some((run) => run.publicPath?.channel && run.publicPath.channel !== "none")).length;
   return {
     products: rows,
     taskCount: tasks.length,
     ranTaskCount: ranTasks,
     unrunTaskCount: tasks.length - ranTasks,
     measuredRunCount: tasks.reduce((sum, task) => sum + task.runs.filter((run) => run.status !== "not_run").length, 0),
+    pathRunCount: pathRuns,
+    pathTaskCount: pathTasks,
   };
 }
 
 export function bakeoffSummaryText(scorecard) {
   if (!scorecard?.taskCount) return "尚未建立黄金任务评测集。";
+  const pathBit = scorecard.pathRunCount
+    ? `已从公开网页版/教程/视频核验 ${scorecard.pathRunCount} 条操作路径，这些路径不是交差。`
+    : "还没有核验到可打开的公开操作路径。";
   if (!scorecard.ranTaskCount) {
-    return `已列出 ${scorecard.taskCount} 个黄金任务，但都还没实测。格子保持「未跑」，不能用官网能力填满分。`;
+    return `已列出 ${scorecard.taskCount} 个黄金任务，都还没实测。${pathBit}格子保持「未跑」，不能用官网能力填满分。`;
   }
   const leaders = (scorecard.products || [])
     .filter((item) => item.ran)
     .map((item) => `${item.product} 交差 ${item.passed}/${item.ran}`);
-  return `已实测 ${scorecard.ranTaskCount}/${scorecard.taskCount} 个任务。${leaders.join("；") || "尚无交差记录"}。未跑的格子不得写成领先。`;
+  return `已实测 ${scorecard.ranTaskCount}/${scorecard.taskCount} 个任务。${leaders.join("；") || "尚无交差记录"}。${pathBit}未跑的格子不得写成领先。`;
 }
 
 export function compileBakeoff(analysis = {}) {
@@ -242,15 +343,23 @@ export function compileBakeoff(analysis = {}) {
   }
 
   const tasks = merged.slice(0, 8);
+  for (const task of tasks) {
+    task.runs = task.runs.map((run) => {
+      if (run.publicPath?.channel && run.publicPath.channel !== "none") return run;
+      const attached = publicPathFromUi(analysis, run.product, task);
+      return attached.channel === "none" ? run : { ...run, publicPath: attached };
+    });
+  }
   const scorecard = summarizeBakeoff(tasks, products);
   return {
-    method: "同一份工作实测：固定任务、同一材料、同一成功标准。未跑写未跑，禁止用功能清单或官网宣传填满分。",
+    method: "同一份工作对照：不装竞品软件。先核验公开网页版/教程/视频里的操作路径；没有本机实测的格子写未跑，公开路径不能写成交差。",
     protocol: Array.isArray(incoming.protocol) && incoming.protocol.length
       ? incoming.protocol.map((item) => String(item)).slice(0, 8)
       : [
         "事先写清任务、材料和交差标准，三个产品用同一份",
-        "只记录实测：是否交差、人工介入几次、第一次可用结果要多久、产物能不能直接用、失败后能不能继续、费用",
-        "没有跑过的格子保持「未跑」，不要根据界面或文档推断通过",
+        "联网只打开网页版、官方教程和实操视频，不下载安装包",
+        "看到进入/执行/交付路径就写入 publicPath；status 仍是 not_run",
+        "只有用户材料里已有实测记录时，才填写交差、介入次数和费用",
       ],
     metrics: BAKEOFF_METRICS,
     tasks,
@@ -263,14 +372,22 @@ export function statusLabel(status) {
   return { not_run: "未跑", passed: "交差", partial: "部分完成", failed: "未交差" }[status] || "未跑";
 }
 
+function pathDetail(run) {
+  const path = run?.publicPath;
+  if (!path || path.channel === "none") return "未见公开操作路径";
+  const stages = (path.stagesSeen || []).join("/");
+  return `公开路径：${CHANNEL_LABEL[path.channel] || path.channel}${stages ? ` · ${stages}` : ""}`;
+}
+
 export function formatRunCell(run) {
-  if (!run || run.status === "not_run") return { title: "未跑", detail: "尚未实测" };
+  if (!run || run.status === "not_run") return { title: "未跑", detail: pathDetail(run) };
   const bits = [
     run.interventions != null ? `介入 ${run.interventions} 次` : "",
     run.timeToValueMinutes != null ? `${run.timeToValueMinutes} 分钟` : "",
     run.deliverableUsable === true ? "产物可直接用" : run.deliverableUsable === false ? "产物还不能直接用" : "",
     run.recoveredFromFailure === "yes" ? "失败后能继续" : run.recoveredFromFailure === "no" ? "失败后不能继续" : "",
     run.cost && run.cost !== "未记录" ? run.cost : "",
+    run.publicPath?.channel && run.publicPath.channel !== "none" ? pathDetail(run) : "",
   ].filter(Boolean);
   return {
     title: statusLabel(run.status),
@@ -280,6 +397,8 @@ export function formatRunCell(run) {
 
 export function formatRunCellText(run) {
   const cell = formatRunCell(run);
-  if (!run || run.status === "not_run") return "未跑";
+  if (!run || run.status === "not_run") {
+    return cell.detail && cell.detail !== "未见公开操作路径" ? `未跑｜${cell.detail}` : "未跑";
+  }
   return cell.detail ? `${cell.title}｜${cell.detail}` : cell.title;
 }

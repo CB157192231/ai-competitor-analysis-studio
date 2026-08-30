@@ -39,6 +39,61 @@ test("inferred or marketing claims do not become passed without a measured run",
   assert.equal(run.source, "unrun");
   assert.equal(formatRunCell(run).title, "未跑");
   assert.equal(formatRunCellText(run), "未跑");
+  assert.equal(run.publicPath.channel, "none");
+});
+
+test("public walkthrough paths stay on the cell without becoming a pass", () => {
+  const run = normalizeRun({
+    status: "passed",
+    source: "inferred",
+    notes: "官网显示可以完成",
+    publicPath: {
+      channel: "official_tutorial",
+      url: "https://docs.example.com/export-docx",
+      stagesSeen: ["进入", "执行", "交付"],
+      notes: "教程从上传文件讲到导出 Word",
+    },
+  }, "甲", "manual");
+  assert.equal(run.status, "not_run");
+  assert.equal(run.publicPath.channel, "official_tutorial");
+  assert.equal(run.publicPath.url, "https://docs.example.com/export-docx");
+  assert.match(formatRunCell(run).detail, /公开路径/);
+  assert.match(formatRunCellText(run), /未跑｜公开路径/);
+});
+
+test("public path without a real URL is dropped", () => {
+  const run = normalizeRun({
+    status: "not_run",
+    publicPath: { channel: "official_web", url: "not-a-url", stagesSeen: ["执行"] },
+  }, "甲");
+  assert.equal(run.publicPath.channel, "none");
+});
+
+test("UI evidence can attach a public path to the matching golden task", () => {
+  const bakeoff = compileBakeoff({
+    competitors: [{ name: "甲" }],
+    productExperience: {
+      competitorAudits: [{
+        competitorName: "甲",
+        interfaceAudit: [{
+          screen: "导出 Word",
+          usageStage: "交付",
+          sourceType: "official_tutorial",
+          sourceUrl: "https://help.example.com/export",
+          purpose: "把本地文件整理成可编辑文档",
+          annotation: "上传本地文件后导出 Word",
+        }],
+      }],
+    },
+  });
+  const t01 = bakeoff.tasks.find((item) => item.id === "T01").runs[0];
+  const t04 = bakeoff.tasks.find((item) => item.id === "T04").runs[0];
+  assert.equal(t01.status, "not_run");
+  assert.equal(t01.publicPath.channel, "official_tutorial");
+  assert.equal(t01.publicPath.url, "https://help.example.com/export");
+  assert.equal(t04.publicPath.channel, "none");
+  assert.ok(bakeoff.scorecard.pathRunCount >= 1);
+  assert.match(bakeoff.summary, /操作路径/);
 });
 
 test("measured source still stays unrun when notes are marketing claims without evidence", () => {
@@ -59,7 +114,9 @@ test("demo measured runs are preserved and not overwritten by marketing inferenc
   assert.equal(atlas.status, "passed");
   assert.equal(atlas.source, "measured");
   assert.equal(atlas.timeToValueMinutes, 22);
-  assert.equal(DEMO_ANALYSIS.bakeoff.tasks.find((item) => item.id === "T01").runs[0].status, "not_run");
+  const t01 = DEMO_ANALYSIS.bakeoff.tasks.find((item) => item.id === "T01").runs.find((item) => item.product === "Atlas AI");
+  assert.equal(t01.status, "not_run");
+  assert.equal(t01.publicPath.channel, "official_tutorial");
 });
 
 test("normalizeAnalysis always emits bakeoff and keeps unrun cells unrun", () => {
@@ -99,5 +156,7 @@ test("analysis prompt requires a bakeoff scorecard and forbids inferred passes",
   const prompt = buildAnalysisPrompt({ meta: { product: "Example" } });
   assert.match(prompt, /黄金任务|bakeoff/);
   assert.match(prompt, /not_run/);
-  assert.match(prompt, /禁止根据官网、功能清单或界面推断 passed/);
+  assert.match(prompt, /不要下载或安装/);
+  assert.match(prompt, /公开路径/);
+  assert.match(prompt, /publicPath/);
 });

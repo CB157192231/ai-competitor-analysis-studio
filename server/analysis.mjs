@@ -508,11 +508,14 @@ export function normalizeAnalysis(input = {}) {
     competitors,
     userNeeds,
     research: { mode: researchMode },
+    productExperience,
     bakeoff: input.bakeoff,
   });
   const limitations = safeArray(input.limitations).map(String);
   if (!bakeoff.scorecard?.ranTaskCount && !limitations.some((item) => /黄金任务|评测集|实测/.test(item))) {
-    limitations.push("尚未完成黄金任务实测。九维评分和界面审计不能代替同一任务对照实验；未跑的格子保持未跑。");
+    limitations.push(bakeoff.scorecard?.pathRunCount
+      ? "黄金任务尚未实测。已用公开网页版、教程或视频核验操作路径；公开路径不能写成交差。"
+      : "尚未完成黄金任务实测。本次分析不下载安装包，只用公开网页版/教程/视频核验路径；未跑的格子保持未跑。");
   }
   return {
     schemaVersion: "1.3",
@@ -783,7 +786,7 @@ export function buildAnalysisPrompt(brief) {
 7. AI 专项：模型策略、模态、效果、时延、可靠性、隐私安全、数据飞轮、集成与成本。
 8. 数据：用户、增长、营收三大系统；提出北极星指标与护栏指标。
 9. 商业：变现模式、访问/ARPU/回访三级火箭、LTV/CAC 与效率杠杆。
-10. 黄金任务实测表：为所有分析对象建立同一份工作评测集（5–8 个任务）。每个任务必须写清材料、成功标准和各产品的 runs。没有实际跑过的格子 status 必须是 not_run、source 必须是 unrun，禁止根据官网、功能清单或界面推断 passed。只有用户材料里已有实测记录时，才把 source 写成 measured，并填写介入次数、首次可用分钟、产物能否直接用、失败恢复和费用。这张表不能被九维评分替代。
+10. 黄金任务对照表：为所有分析对象建立同一份工作评测集（5–8 个任务）。不要下载或安装竞品客户端。联网时为每个任务检索该产品的官方网页版、官方教程真实操作步骤、或可信实操视频；只要能看到进入/执行/交付中至少两段，就写入 runs.publicPath（channel/url/stagesSeen/notes）。status 必须仍是 not_run、source 必须仍是 unrun。公开路径不是交差，首页、价格页、功能清单和发布会不算路径。只有用户材料里已有实测记录时，才把 source 写成 measured，并填写介入次数、首次可用分钟、产物能否直接用、失败恢复和费用。这张表不能被九维评分替代。
 11. 汇报：结论先行，每条建议写清价值、证据、风险、资源与下一步。
 
 证据纪律：
@@ -857,7 +860,7 @@ export function buildAnalysisPrompt(brief) {
   "opportunities":[{"title":"","rationale":"","value":"","risk":"","impact":0,"confidence":0,"effort":0,"horizon":"Now/Next/Later","metric":"","owner":"","resources":[""],"dependencies":[""],"experiment":"","successCriteria":"","nextStep":"","evidenceIds":["E01"]}],
   "roadmap":{"now":[""],"next":[""],"later":[""]},
   "evidence":[{"id":"E01","title":"","url":"","date":"","type":"","claim":"","confidence":"高/中/低"}],
-  "bakeoff":{"method":"同一份工作实测","protocol":[""],"tasks":[{"id":"T01","name":"","job":"","materials":"同一份材料","success":"交差标准","runs":[{"product":"必须与 competitors.name 一致","status":"not_run/passed/partial/failed","source":"unrun/measured","completed":null,"interventions":null,"timeToValueMinutes":null,"deliverableUsable":null,"recoveredFromFailure":"not_run/yes/no/not_applicable","cost":"未记录","notes":"未跑","evidenceIds":[]}]}]},
+  "bakeoff":{"method":"同一份工作对照，不装软件","protocol":[""],"tasks":[{"id":"T01","name":"","job":"","materials":"同一份材料","success":"交差标准","runs":[{"product":"必须与 competitors.name 一致","status":"not_run/passed/partial/failed","source":"unrun/measured","publicPath":{"channel":"none/official_web/official_tutorial/video_walkthrough/secondary_walkthrough","url":"","stagesSeen":["进入","执行","交付"],"notes":"未见公开操作路径"},"completed":null,"interventions":null,"timeToValueMinutes":null,"deliverableUsable":null,"recoveredFromFailure":"not_run/yes/no/not_applicable","cost":"未记录","notes":"未跑","evidenceIds":[]}]}]},
   "limitations":[""]
 }
 
@@ -1104,18 +1107,30 @@ export const DEMO_ANALYSIS = normalizeAnalysis({
     {id:"E10",title:"演示用研究任务测试",date:"2026-08-16",type:"任务测试",claim:"Quill 在深度研究任务上体验较好，协作与通用场景较弱",confidence:"中"},
   ],
   bakeoff: {
-    tasks: [{
-      id: "T02",
-      name: "根据公开网页完成带来源的研究或对比",
-      job: "用同一组公开链接做研究或竞品对比，并交代来源",
-      materials: "同一组研究问题和同一批公开网页",
-      success: "结论能点回具体来源，且不是只复述功能清单",
-      runs: [
-        { product: "Atlas AI", status: "passed", source: "measured", completed: true, interventions: 1, timeToValueMinutes: 22, deliverableUsable: true, recoveredFromFailure: "not_applicable", cost: "演示记录", notes: "演示评测：导出前能点回来源", evidenceIds: ["E03"] },
-        { product: "Nova Copilot", status: "partial", source: "measured", completed: false, interventions: 4, timeToValueMinutes: 9, deliverableUsable: false, recoveredFromFailure: "no", cost: "演示记录", notes: "演示评测：能生成草稿，引用不完整，失败后只能重问", evidenceIds: ["E03"] },
-        { product: "Quill Research", status: "passed", source: "measured", completed: true, interventions: 2, timeToValueMinutes: 31, deliverableUsable: true, recoveredFromFailure: "not_applicable", cost: "演示记录", notes: "演示评测：长报告带来源，但协作复用弱", evidenceIds: ["E10"] },
-      ],
-    }],
+    tasks: [
+      {
+        id: "T01",
+        name: "本地文件整理并产出可编辑交付物",
+        job: "把同一组本地资料整理成可打开、可继续改的文档或幻灯片",
+        materials: "同一组本地文件和同一条任务说明",
+        success: "产物可打开、可编辑，并覆盖事先写好的要点",
+        runs: [
+          { product: "Atlas AI", status: "not_run", source: "unrun", notes: "未跑", publicPath: { channel: "official_tutorial", url: "https://example.com/atlas-workspace", stagesSeen: ["进入", "执行", "交付"], notes: "官方工作台教程能看到上传到导出，不是本机实测" }, evidenceIds: ["E02"] },
+        ],
+      },
+      {
+        id: "T02",
+        name: "根据公开网页完成带来源的研究或对比",
+        job: "用同一组公开链接做研究或竞品对比，并交代来源",
+        materials: "同一组研究问题和同一批公开网页",
+        success: "结论能点回具体来源，且不是只复述功能清单",
+        runs: [
+          { product: "Atlas AI", status: "passed", source: "measured", completed: true, interventions: 1, timeToValueMinutes: 22, deliverableUsable: true, recoveredFromFailure: "not_applicable", cost: "演示记录", notes: "演示评测：导出前能点回来源", evidenceIds: ["E03"], publicPath: { channel: "official_tutorial", url: "https://example.com/atlas-workspace", stagesSeen: ["执行", "交付"], notes: "工作台教程同时展示研究任务" } },
+          { product: "Nova Copilot", status: "partial", source: "measured", completed: false, interventions: 4, timeToValueMinutes: 9, deliverableUsable: false, recoveredFromFailure: "no", cost: "演示记录", notes: "演示评测：能生成草稿，引用不完整，失败后只能重问", evidenceIds: ["E03"] },
+          { product: "Quill Research", status: "passed", source: "measured", completed: true, interventions: 2, timeToValueMinutes: 31, deliverableUsable: true, recoveredFromFailure: "not_applicable", cost: "演示记录", notes: "演示评测：长报告带来源，但协作复用弱", evidenceIds: ["E10"] },
+        ],
+      },
+    ],
   },
   limitations: ["全部竞品名称和数据均为演示用途，不代表真实公司或市场结论。"],
 });

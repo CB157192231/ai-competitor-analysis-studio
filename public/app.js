@@ -55,7 +55,7 @@ function bakeoffTableHtml(bakeoff) {
   return `<table class="data-table bakeoff-table"><thead><tr><th>黄金任务</th>${products.map((name) => `<th>${esc(name)}</th>`).join("")}</tr></thead><tbody>${tasks.map((task) => `<tr><th><strong>${esc(task.name)}</strong><br><small>${esc(task.success || "")}</small></th>${products.map((name) => {
     const run = (task.runs || []).find((item) => item.product === name) || { status: "not_run" };
     const cell = formatRunCell(run);
-    return `<td class="bakeoff-cell ${esc(run.status || "not_run")}"><strong>${esc(cell.title)}</strong><br><small>${esc(cell.detail)}</small></td>`;
+    return `<td class="bakeoff-cell ${esc(run.status || "not_run")}${run.publicPath?.channel && run.publicPath.channel !== "none" ? " has-path" : ""}"><strong>${esc(cell.title)}</strong><br><small>${esc(cell.detail)}</small>${run.publicPath?.url ? `<br><a class="bakeoff-path-link" href="${esc(safeUrl(run.publicPath.url))}" target="_blank" rel="noreferrer">打开公开路径</a>` : ""}</td>`;
   }).join("")}</tr>`).join("")}</tbody></table>`;
 }
 
