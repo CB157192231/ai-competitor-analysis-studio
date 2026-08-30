@@ -22,6 +22,15 @@ const CHANNEL_LABEL = {
 };
 
 export const BAKEOFF_METRICS = ["是否交差", "人工介入次数", "首次可用结果(分钟)", "产物能否直接用", "失败后能否继续", "本次费用"];
+export const WEB_BAKEOFF_TASK_ID = "T02";
+export const BAKEOFF_METHOD = "同一份工作对照：不装竞品软件。每次开始调研时打开官方网页版实测同一条带来源研究任务；登录墙或仅下载标未跑。公开路径不是交差。";
+export const BAKEOFF_PROTOCOL = [
+  "事先写清任务、材料和交差标准，三个产品用同一份",
+  "每次开始调研时，本地服务打开各竞品官方网页版，实测同一条带来源研究任务",
+  "不下载安装包，也不代为登录或向竞品提交任务",
+  "登录墙、仅下载客户端、打开失败都标未跑，来源记为 measured",
+  "只有工作台真正交出带来源的结果，才写 passed/partial",
+];
 
 export const DEFAULT_GOLDEN_TASKS = [
   {
@@ -196,6 +205,7 @@ export function normalizeRun(run, product, researchMode = "manual") {
   if (status === "not_run") {
     return {
       ...base,
+      source: source === "measured" ? "measured" : "unrun",
       notes: notes && !PLACEHOLDER_RE.test(notes) ? notes : "未跑",
       evidenceIds,
       publicPath,
@@ -274,12 +284,14 @@ export function summarizeBakeoff(tasks = [], products = []) {
   const ranTasks = tasks.filter((task) => task.runs.some((run) => run.status !== "not_run")).length;
   const pathRuns = tasks.reduce((sum, task) => sum + task.runs.filter((run) => run.publicPath?.channel && run.publicPath.channel !== "none").length, 0);
   const pathTasks = tasks.filter((task) => task.runs.some((run) => run.publicPath?.channel && run.publicPath.channel !== "none")).length;
+  const probedRuns = tasks.reduce((sum, task) => sum + task.runs.filter((run) => run.source === "measured").length, 0);
   return {
     products: rows,
     taskCount: tasks.length,
     ranTaskCount: ranTasks,
     unrunTaskCount: tasks.length - ranTasks,
     measuredRunCount: tasks.reduce((sum, task) => sum + task.runs.filter((run) => run.status !== "not_run").length, 0),
+    probedRunCount: probedRuns,
     pathRunCount: pathRuns,
     pathTaskCount: pathTasks,
   };
@@ -290,8 +302,11 @@ export function bakeoffSummaryText(scorecard) {
   const pathBit = scorecard.pathRunCount
     ? `已从公开网页版/教程/视频核验 ${scorecard.pathRunCount} 条操作路径，这些路径不是交差。`
     : "还没有核验到可打开的公开操作路径。";
+  const probeBit = scorecard.probedRunCount
+    ? `本次调研已打开 ${scorecard.probedRunCount} 个官方网页版入口实测同一条任务；登录墙或仅下载仍标未跑。`
+    : "";
   if (!scorecard.ranTaskCount) {
-    return `已列出 ${scorecard.taskCount} 个黄金任务，都还没实测。${pathBit}格子保持「未跑」，不能用官网能力填满分。`;
+    return `已列出 ${scorecard.taskCount} 个黄金任务，都还没交差。${probeBit}${pathBit}格子保持「未跑」，不能用官网能力填满分。`;
   }
   const leaders = (scorecard.products || [])
     .filter((item) => item.ran)
@@ -352,15 +367,10 @@ export function compileBakeoff(analysis = {}) {
   }
   const scorecard = summarizeBakeoff(tasks, products);
   return {
-    method: "同一份工作对照：不装竞品软件。先核验公开网页版/教程/视频里的操作路径；没有本机实测的格子写未跑，公开路径不能写成交差。",
+    method: BAKEOFF_METHOD,
     protocol: Array.isArray(incoming.protocol) && incoming.protocol.length
       ? incoming.protocol.map((item) => String(item)).slice(0, 8)
-      : [
-        "事先写清任务、材料和交差标准，三个产品用同一份",
-        "联网只打开网页版、官方教程和实操视频，不下载安装包",
-        "看到进入/执行/交付路径就写入 publicPath；status 仍是 not_run",
-        "只有用户材料里已有实测记录时，才填写交差、介入次数和费用",
-      ],
+      : BAKEOFF_PROTOCOL,
     metrics: BAKEOFF_METRICS,
     tasks,
     scorecard,
@@ -379,8 +389,41 @@ function pathDetail(run) {
   return `公开路径：${CHANNEL_LABEL[path.channel] || path.channel}${stages ? ` · ${stages}` : ""}`;
 }
 
+export function overlayBakeoffProbes(analysis = {}, probes = [], taskId = WEB_BAKEOFF_TASK_ID) {
+  const bakeoff = compileBakeoff(analysis);
+  if (!Array.isArray(probes) || !probes.length) return bakeoff;
+  const task = bakeoff.tasks.find((item) => item.id === taskId) || bakeoff.tasks.find((item) => /研究|来源/u.test(item.name || ""));
+  if (!task) return bakeoff;
+  const researchMode = analysis.research?.mode || "manual";
+  task.runs = task.runs.map((run) => {
+    const probe = probes.find((item) => namesMatch(item?.product, run.product));
+    if (!probe) return run;
+    return normalizeRun({
+      ...run,
+      status: STATUSES.includes(probe.status) ? probe.status : "not_run",
+      source: "measured",
+      notes: text(probe.notes, run.notes),
+      publicPath: probe.publicPath || run.publicPath,
+    }, run.product, researchMode);
+  });
+  const products = (analysis.competitors || []).map((item) => text(item?.name)).filter(Boolean);
+  const scorecard = summarizeBakeoff(bakeoff.tasks, products);
+  return {
+    ...bakeoff,
+    method: BAKEOFF_METHOD,
+    protocol: BAKEOFF_PROTOCOL,
+    scorecard,
+    summary: bakeoffSummaryText(scorecard),
+  };
+}
+
 export function formatRunCell(run) {
-  if (!run || run.status === "not_run") return { title: "未跑", detail: pathDetail(run) };
+  if (!run || run.status === "not_run") {
+    const probeNote = run?.source === "measured" && text(run.notes) && !PLACEHOLDER_RE.test(text(run.notes))
+      ? text(run.notes)
+      : "";
+    return { title: "未跑", detail: probeNote || pathDetail(run) };
+  }
   const bits = [
     run.interventions != null ? `介入 ${run.interventions} 次` : "",
     run.timeToValueMinutes != null ? `${run.timeToValueMinutes} 分钟` : "",
