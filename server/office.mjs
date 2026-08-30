@@ -7,6 +7,7 @@ import {
   Presentation,
   PresentationFile,
 } from "@oai/artifact-tool";
+import { formatRunCell, formatRunCellText } from "../public/bakeoff.js";
 import {
   AlignmentType,
   BorderStyle,
@@ -2071,12 +2072,52 @@ export async function buildPptx(rawAnalysis) {
     addNotes(slide, ["分数越高表示越容易上手，不代表产品能力更强。", "缺少执行、失败或结果页证据时，分数会标成暂定并降低置信度。"], sourceSubset(a));
   }
 
+  // Same-job golden-task bakeoff. Unrun cells stay unrun; marketing claims are not passes.
+  const bakeoffSlideIndex = deck.slides.count;
+  {
+    const slide = deck.slides.add();
+    slide.background.fill = C.paper;
+    addSlideChrome(slide, "Golden task bakeoff", 26);
+    const bakeoff = a.bakeoff || {};
+    const tasks = (bakeoff.tasks || []).slice(0, 6);
+    const products = [...new Set((bakeoff.tasks || []).flatMap((task) => (task.runs || []).map((run) => run.product)))].filter(Boolean).slice(0, 3);
+    const scorecard = bakeoff.scorecard || {};
+    addTitle(slide, "同一批黄金任务，实际跑过没有", "固定任务、同一材料、同一成功标准。没有实测的格子写未跑，不能用功能清单填通过");
+    const names = products.length ? products : firstCompetitors.map((item) => item.name).slice(0, 3);
+    const rows = tasks.length ? tasks : [{ id: "T01", name: "待建立黄金任务", success: "事先写清交差标准", runs: [] }];
+    const colW = Math.min(280, Math.floor(900 / Math.max(1, names.length)));
+    const rowH = Math.min(64, Math.floor(412 / Math.max(1, rows.length)));
+    addRect(slide, { left: 64, top: 214, width: 1144, height: 48 + rows.length * rowH }, C.white, "rounded-xl", C.line);
+    addRect(slide, { left: 64, top: 214, width: 236, height: 48 }, C.ink, "none");
+    addText(slide, "黄金任务", { left: 84, top: 227, width: 196, height: 24 }, { fontSize: 16, color: C.white, bold: true });
+    names.forEach((name, index) => {
+      addRect(slide, { left: 300 + index * colW, top: 214, width: colW, height: 48 }, index === 0 ? C.accent : C.mint, "none");
+      addFittedText(slide, short(name, 16), { left: 308 + index * colW, top: 226, width: colW - 16, height: 24 }, { fontSize: 16, minFontSize: 13, color: C.white, bold: true, maxLines: 1, alignment: "center" });
+    });
+    rows.forEach((task, rowIndex) => {
+      const top = 262 + rowIndex * rowH;
+      addFittedText(slide, short(task.name || task.id, 16), { left: 84, top: top + 8, width: 196, height: rowH - 16 }, { fontSize: 14, minFontSize: 12, color: C.mint, bold: true, maxLines: 3 });
+      names.forEach((name, index) => {
+        const run = (task.runs || []).find((item) => item.product === name) || { status: "not_run" };
+        const cell = formatRunCell(run);
+        const color = run.status === "passed" ? C.mint : run.status === "failed" ? C.accent : run.status === "partial" ? C.accent : C.muted;
+        addText(slide, cell.title, { left: 308 + index * colW, top: top + 6, width: colW - 16, height: 20 }, { fontSize: 15, color, bold: true });
+        addFittedText(slide, short(cell.detail, 28), { left: 308 + index * colW, top: top + 26, width: colW - 16, height: Math.max(18, rowH - 34) }, { fontSize: 12, minFontSize: 11, color: C.ink, maxLines: 2, lineSpacing: 1.02 });
+      });
+    });
+    addText(slide, `已跑 ${scorecard.ranTaskCount || 0} / ${scorecard.taskCount || rows.length} 项；未跑 ${scorecard.unrunTaskCount ?? Math.max(0, (scorecard.taskCount || 0) - (scorecard.ranTaskCount || 0))} 项。未跑不等于失败。`, { left: 64, top: 648, width: 1144, height: 22 }, { fontSize: 14, color: C.muted });
+    addNotes(slide, [
+      bakeoff.summary || "尚未建立黄金任务评测集。",
+      "九维评分和界面审计不能代替同一任务对照实验。没有实测记录时，格子保持未跑。",
+    ], sourceSubset(a));
+  }
+
   // One coherent story shared with the web report: decision -> demand/scenarios ->
   // real application evidence -> interaction/data/backend -> comparison -> business.
   deck = reorderPresentation(deck, [
     0, 1, 2, 3, 5, 13,
     ...productEvidenceSlideIndexes,
-    scenarioValueSlideIndex, usabilityScoreSlideIndex,
+    scenarioValueSlideIndex, usabilityScoreSlideIndex, bakeoffSlideIndex,
     14, 15, 16, 18, 17,
     11, 12, 19,
   ]);
@@ -2367,6 +2408,26 @@ export async function buildDocx(rawAnalysis, visualDataUrl = "") {
       ], [1600, 900, 4660, 2200], { header: true, centerColumns: [1] }));
     }
   });
+  const bakeoff = a.bakeoff || {};
+  const bakeoffTasks = bakeoff.tasks || [];
+  const bakeoffProducts = [...new Set(bakeoffTasks.flatMap((task) => (task.runs || []).map((run) => run.product)))].filter(Boolean);
+  children.push(heading("同一批黄金任务，实际跑过没有", 2));
+  children.push(para(bakeoff.method || "同一份工作实测：固定任务、同一材料、同一成功标准。未跑写未跑，禁止用功能清单或官网宣传填满分。", { bold: true }));
+  children.push(para(bakeoff.summary || `已跑 ${bakeoff.scorecard?.ranTaskCount || 0} / 共 ${bakeoff.scorecard?.taskCount || bakeoffTasks.length} 项；未跑 ${bakeoff.scorecard?.unrunTaskCount || 0} 项。未实测的格子只标未跑，不按宣传材料打通过。`));
+  if (bakeoffTasks.length && bakeoffProducts.length) {
+    children.push(table([
+      ["黄金任务", ...bakeoffProducts],
+      ...bakeoffTasks.map((task) => [
+        `${task.id} ${task.name}\n成功标准：${task.success || "待定义"}`,
+        ...bakeoffProducts.map((name) => formatRunCellText((task.runs || []).find((item) => item.product === name))),
+      ]),
+    ], [2400, ...bakeoffProducts.map(() => Math.floor(6960 / Math.max(1, bakeoffProducts.length)))], { header: true }));
+  } else {
+    children.push(para("尚未形成黄金任务实测对照。没有实测记录时，不把宣传材料里的能力写成已跑过。"));
+  }
+  if ((bakeoff.protocol || []).length) {
+    children.push(...bulletList(bakeoff.protocol));
+  }
   children.push(heading("同一件工作，各产品让用户怎样完成", 2));
   const comparison = px.comparison || {};
   const products = [...new Set((comparison.cells || []).map((item) => item.product))];

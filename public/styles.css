@@ -363,10 +363,24 @@ dialog::backdrop { background: rgba(9, 20, 17, .68); backdrop-filter: blur(5px);
 .ui-usability-verdict { padding: 22px 26px; display: grid; grid-template-columns: 230px 1fr; gap: 8px 22px; align-items: center; background: #e8efe9; }.ui-usability-verdict > div { grid-row: span 2; display: grid; grid-template-columns: 1fr auto; align-items: end; gap: 4px 10px; }.ui-usability-verdict span { color: var(--mint); font-size: 10px; font-weight: 800; }.ui-usability-verdict strong { color: var(--ink); font-size: 34px; }.ui-usability-verdict strong small { font-size: 11px; }.ui-usability-verdict em { grid-column: 1 / -1; color: var(--muted); font-size: 9px; font-style: normal; }.ui-usability-verdict p { margin: 0; font-size: 14px; line-height: 1.55; font-weight: 700; }.ui-usability-verdict > small { color: var(--muted); font-size: 9px; }
 .ui-usability-dimensions { margin-top: 14px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }.ui-usability-dimensions article { padding: 17px; border: 1px solid var(--line); }.ui-usability-dimensions header { display: flex; justify-content: space-between; align-items: center; }.ui-usability-dimensions header strong { font-size: 12px; }.ui-usability-dimensions header b { color: var(--accent); font-size: 18px; }.ui-score-track { height: 5px; margin: 10px 0; overflow: hidden; background: #e6e8e4; }.ui-score-track i { display: block; height: 100%; background: var(--mint); }.ui-usability-dimensions p { min-height: 48px; margin: 0 0 8px; color: var(--muted); font-size: 9px; line-height: 1.55; }.ui-usability-dimensions small { color: var(--muted); font-size: 8px; }
 .ui-usability-comparison { margin-top: 18px; overflow-x: auto; }
+.bakeoff-lead { margin: 0 0 14px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+.ui-bakeoff-wrap { overflow-x: auto; }
+.bakeoff-table th small { font-weight: 400; }
+.bakeoff-cell strong { display: block; }
+.bakeoff-cell.not_run { color: var(--muted); }
+.bakeoff-cell.passed { border-left: 3px solid var(--mint); }
+.bakeoff-cell.partial { border-left: 3px solid var(--accent); }
+.bakeoff-cell.failed { border-left: 3px solid var(--red); }
+.ui-bakeoff-tasks { margin-top: 16px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.ui-bakeoff-task { padding: 16px; border: 1px solid var(--line); background: #faf9f5; }
+.ui-bakeoff-task code { color: var(--mint); font-size: 10px; font-weight: 800; }
+.ui-bakeoff-task h4 { margin: 8px 0; font-size: 15px; }
+.ui-bakeoff-task p { margin: 0; color: var(--ink); font-size: 12px; line-height: 1.5; }
+.ui-bakeoff-task small { display: block; margin-top: 10px; color: var(--muted); font-size: 10px; line-height: 1.5; }
 
 @media (max-width: 1180px) {
   .ui-evidence-layout, .ui-logic-columns { grid-template-columns: 1fr; }
-  .ui-scenario-comparison > div, .ui-usability-dimensions { grid-template-columns: 1fr; }
+  .ui-scenario-comparison > div, .ui-usability-dimensions, .ui-bakeoff-tasks { grid-template-columns: 1fr; }
   .ui-tracking-grid, .ui-data-principles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ui-entity-grid, .ui-business-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .app-shell { grid-template-columns: 210px minmax(0, 1fr); }

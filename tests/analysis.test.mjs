@@ -299,4 +299,7 @@ test("demo analysis is internally complete", () => {
   assert.equal(DEMO_ANALYSIS.productExperience.competitorAudits[0].interfaceAudit[0].imageUrl, "/assets/demo-workspace.png");
   assert.ok(DEMO_ANALYSIS.productExperience.backendDelivery.apis.length >= 1);
   assert.ok(DEMO_ANALYSIS.productExperience.comparison.cells.length >= 1);
+  assert.ok(DEMO_ANALYSIS.bakeoff.tasks.length >= 5);
+  assert.ok(DEMO_ANALYSIS.bakeoff.scorecard.ranTaskCount >= 1);
+  assert.equal(DEMO_ANALYSIS.bakeoff.tasks.find((item) => item.id === "T02")?.runs.find((item) => item.product === "Atlas AI")?.status, "passed");
 });

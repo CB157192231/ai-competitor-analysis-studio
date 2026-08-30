@@ -1,3 +1,4 @@
+import { compileBakeoff } from "../public/bakeoff.js";
 import { harvestQueryPlaybook, isLowQualityWalkthrough, isSecondaryWalkthroughHost, canonicalizeHarvestUrl, walkthroughHarvestRules } from "./source-harvest.mjs";
 
 export const DIMENSIONS = [
@@ -502,6 +503,17 @@ export function normalizeAnalysis(input = {}) {
     renamedEvidenceIds: [...safeArray(priorAudit.renamedEvidenceIds), ...renamedEvidenceIds],
     unreferencedEvidenceIds: evidence.filter((item) => !referencedEvidenceIds.has(item.id)).map((item) => item.id),
   };
+  const researchMode = ["web_search", "manual", "demo"].includes(input?.research?.mode) ? input.research.mode : "manual";
+  const bakeoff = compileBakeoff({
+    competitors,
+    userNeeds,
+    research: { mode: researchMode },
+    bakeoff: input.bakeoff,
+  });
+  const limitations = safeArray(input.limitations).map(String);
+  if (!bakeoff.scorecard?.ranTaskCount && !limitations.some((item) => /黄金任务|评测集|实测/.test(item))) {
+    limitations.push("尚未完成黄金任务实测。九维评分和界面审计不能代替同一任务对照实验；未跑的格子保持未跑。");
+  }
   return {
     schemaVersion: "1.3",
     meta: {
@@ -582,7 +594,8 @@ export function normalizeAnalysis(input = {}) {
     },
     evidence,
     audit,
-    limitations: safeArray(input.limitations).map(String),
+    bakeoff,
+    limitations,
   };
 }
 
@@ -770,7 +783,8 @@ export function buildAnalysisPrompt(brief) {
 7. AI 专项：模型策略、模态、效果、时延、可靠性、隐私安全、数据飞轮、集成与成本。
 8. 数据：用户、增长、营收三大系统；提出北极星指标与护栏指标。
 9. 商业：变现模式、访问/ARPU/回访三级火箭、LTV/CAC 与效率杠杆。
-10. 汇报：结论先行，每条建议写清价值、证据、风险、资源与下一步。
+10. 黄金任务实测表：为所有分析对象建立同一份工作评测集（5–8 个任务）。每个任务必须写清材料、成功标准和各产品的 runs。没有实际跑过的格子 status 必须是 not_run、source 必须是 unrun，禁止根据官网、功能清单或界面推断 passed。只有用户材料里已有实测记录时，才把 source 写成 measured，并填写介入次数、首次可用分钟、产物能否直接用、失败恢复和费用。这张表不能被九维评分替代。
+11. 汇报：结论先行，每条建议写清价值、证据、风险、资源与下一步。
 
 证据纪律：
 - 不得编造数据、用户反馈、价格、融资或市场规模。
@@ -843,6 +857,7 @@ export function buildAnalysisPrompt(brief) {
   "opportunities":[{"title":"","rationale":"","value":"","risk":"","impact":0,"confidence":0,"effort":0,"horizon":"Now/Next/Later","metric":"","owner":"","resources":[""],"dependencies":[""],"experiment":"","successCriteria":"","nextStep":"","evidenceIds":["E01"]}],
   "roadmap":{"now":[""],"next":[""],"later":[""]},
   "evidence":[{"id":"E01","title":"","url":"","date":"","type":"","claim":"","confidence":"高/中/低"}],
+  "bakeoff":{"method":"同一份工作实测","protocol":[""],"tasks":[{"id":"T01","name":"","job":"","materials":"同一份材料","success":"交差标准","runs":[{"product":"必须与 competitors.name 一致","status":"not_run/passed/partial/failed","source":"unrun/measured","completed":null,"interventions":null,"timeToValueMinutes":null,"deliverableUsable":null,"recoveredFromFailure":"not_run/yes/no/not_applicable","cost":"未记录","notes":"未跑","evidenceIds":[]}]}]},
   "limitations":[""]
 }
 
@@ -1088,5 +1103,19 @@ export const DEMO_ANALYSIS = normalizeAnalysis({
     {id:"E09",title:"演示用 Quill 功能核对",date:"2026-08-17",type:"产品核对",claim:"Quill 的联网研究、引用与长报告链路较完整，但集成较少",confidence:"中"},
     {id:"E10",title:"演示用研究任务测试",date:"2026-08-16",type:"任务测试",claim:"Quill 在深度研究任务上体验较好，协作与通用场景较弱",confidence:"中"},
   ],
+  bakeoff: {
+    tasks: [{
+      id: "T02",
+      name: "根据公开网页完成带来源的研究或对比",
+      job: "用同一组公开链接做研究或竞品对比，并交代来源",
+      materials: "同一组研究问题和同一批公开网页",
+      success: "结论能点回具体来源，且不是只复述功能清单",
+      runs: [
+        { product: "Atlas AI", status: "passed", source: "measured", completed: true, interventions: 1, timeToValueMinutes: 22, deliverableUsable: true, recoveredFromFailure: "not_applicable", cost: "演示记录", notes: "演示评测：导出前能点回来源", evidenceIds: ["E03"] },
+        { product: "Nova Copilot", status: "partial", source: "measured", completed: false, interventions: 4, timeToValueMinutes: 9, deliverableUsable: false, recoveredFromFailure: "no", cost: "演示记录", notes: "演示评测：能生成草稿，引用不完整，失败后只能重问", evidenceIds: ["E03"] },
+        { product: "Quill Research", status: "passed", source: "measured", completed: true, interventions: 2, timeToValueMinutes: 31, deliverableUsable: true, recoveredFromFailure: "not_applicable", cost: "演示记录", notes: "演示评测：长报告带来源，但协作复用弱", evidenceIds: ["E10"] },
+      ],
+    }],
+  },
   limitations: ["全部竞品名称和数据均为演示用途，不代表真实公司或市场结论。"],
 });

@@ -1,4 +1,5 @@
 import { compileUiAuditFromScreens } from "./ui-audit.js";
+import { compileBakeoff, formatRunCell } from "./bakeoff.js";
 
 const DIMENSIONS = [
   ["marketFit", "市场匹配"],
@@ -46,6 +47,34 @@ const listHtml = (items, empty = "待验证") => {
   const values = Array.isArray(items) ? items.filter(Boolean) : [];
   return values.length ? `<ul>${values.map((item) => `<li>${esc(item)}</li>`).join("")}</ul>` : `<p class="empty-mini">${esc(empty)}</p>`;
 };
+
+function bakeoffTableHtml(bakeoff) {
+  const tasks = bakeoff?.tasks || [];
+  const products = [...new Set(tasks.flatMap((task) => (task.runs || []).map((run) => run.product)))];
+  if (!tasks.length || !products.length) return '<p class="empty-mini">尚未建立黄金任务评测集。</p>';
+  return `<table class="data-table bakeoff-table"><thead><tr><th>黄金任务</th>${products.map((name) => `<th>${esc(name)}</th>`).join("")}</tr></thead><tbody>${tasks.map((task) => `<tr><th><strong>${esc(task.name)}</strong><br><small>${esc(task.success || "")}</small></th>${products.map((name) => {
+    const run = (task.runs || []).find((item) => item.product === name) || { status: "not_run" };
+    const cell = formatRunCell(run);
+    return `<td class="bakeoff-cell ${esc(run.status || "not_run")}"><strong>${esc(cell.title)}</strong><br><small>${esc(cell.detail)}</small></td>`;
+  }).join("")}</tr>`).join("")}</tbody></table>`;
+}
+
+function bakeoffTaskCards(bakeoff) {
+  const tasks = bakeoff?.tasks || [];
+  if (!tasks.length) return "";
+  return tasks.map((task) => `<article class="ui-bakeoff-task"><code>${esc(task.id)}</code><h4>${esc(task.name)}</h4><p>${esc(task.job)}</p><small>材料：${esc(task.materials)}<br>交差标准：${esc(task.success)}</small></article>`).join("");
+}
+
+function renderBakeoffTables() {
+  const bakeoff = state.analysis?.bakeoff;
+  const summary = bakeoff?.summary || "尚未建立黄金任务评测集。";
+  const table = bakeoffTableHtml(bakeoff);
+  if ($("#bakeoffSummary")) $("#bakeoffSummary").textContent = summary;
+  if ($("#dashboardBakeoff")) $("#dashboardBakeoff").innerHTML = table;
+  if ($("#uiBakeoffSummary")) $("#uiBakeoffSummary").textContent = summary;
+  if ($("#uiBakeoffTable")) $("#uiBakeoffTable").innerHTML = table;
+  if ($("#uiBakeoffTasks")) $("#uiBakeoffTasks").innerHTML = bakeoffTaskCards(bakeoff);
+}
 
 function toast(message, error = false) {
   const el = $("#toast");
@@ -277,6 +306,7 @@ function renderDashboard() {
   renderScoreBars();
   renderHeatmap();
   renderPositionMap();
+  renderBakeoffTables();
   updateSummaryMetrics();
 }
 
@@ -463,6 +493,7 @@ function renderUiAnalysis() {
   const usabilityProducts = productAudits.filter((item) => item.usabilityScore?.dimensions?.length);
   const usabilityLabels = usabilityProducts[0]?.usabilityScore?.dimensions?.map((item) => item.label) || [];
   $("#uiUsabilityComparison").innerHTML = usabilityProducts.length ? `<table class="data-table"><thead><tr><th>使用环节</th>${usabilityProducts.map((item) => `<th>${esc(item.competitorName)}</th>`).join("")}</tr></thead><tbody><tr><th>综合分</th>${usabilityProducts.map((item) => `<td><strong>${Number(item.usabilityScore.total || 0).toFixed(1)}/5</strong><br><small>${esc(item.usabilityScore.confidence?.level || "低")}置信度</small></td>`).join("")}</tr>${usabilityLabels.map((label, index) => `<tr><th>${esc(label)}</th>${usabilityProducts.map((item) => { const dimension = item.usabilityScore.dimensions[index] || {}; return `<td><strong>${Number(dimension.score || 0).toFixed(1)}</strong><br><small>${esc(dimension.reason || "待验证")}</small></td>`; }).join("")}</tr>`).join("")}</tbody></table>` : '<p class="empty-mini">尚未形成上手成本横向对比。</p>';
+  renderBakeoffTables();
 
   const swimlanes = (selected.swimlanes || px.swimlanes || []).slice(0, 6);
   const lanes = [["用户", "user"], ["前端", "frontend"], ["Agent", "agent"], ["运营", "operations"], ["数据", "data"]];
@@ -559,7 +590,13 @@ function persist() {
 }
 
 function setAnalysis(analysis) {
-  state.analysis = analysis ? compileUiAuditFromScreens(analysis) : analysis;
+  if (!analysis) {
+    state.analysis = analysis;
+  } else {
+    const compiled = compileUiAuditFromScreens(analysis);
+    compiled.bakeoff = compileBakeoff(compiled);
+    state.analysis = compiled;
+  }
   state.uiCompetitorIndex = 0;
   persist();
   renderAll();

@@ -15,7 +15,7 @@ await fs.writeFile(path.join(outputDir, "demo-analysis.docx"), docx);
 const pptZip = await JSZip.loadAsync(pptx);
 const noteFiles = Object.keys(pptZip.files).filter((name) => /^ppt\/notesSlides\/notesSlide\d+\.xml$/.test(name));
 const chartFiles = Object.keys(pptZip.files).filter((name) => /^ppt\/(?:slides\/)?charts\/chart\d+\.xml$/.test(name));
-const expectedSlides = 20 + DEMO_ANALYSIS.competitors.length;
+const expectedSlides = 21 + DEMO_ANALYSIS.competitors.length;
 if (noteFiles.length !== expectedSlides) throw new Error(`Expected ${expectedSlides} note slides, found ${noteFiles.length}`);
 if (chartFiles.length < 1) throw new Error(`Expected at least 1 native chart, found ${chartFiles.length}`);
 const firstNotes = await pptZip.file(noteFiles[0]).async("string");
@@ -29,6 +29,8 @@ if (!slideXml[3].includes("窗口期来自企业化")) throw new Error("PPTX nar
 if (!slideXml[7].includes("先看真实使用界面")) throw new Error("PPTX narrative did not move interface evidence before product conclusions");
 if (!slideXml[8].includes("Atlas AI")) throw new Error("PPTX is missing the first product-specific UI evidence slide");
 if (!slideXml.at(-1).includes("立项结论")) throw new Error("PPTX decision summary is no longer the final slide");
+if (!visibleSlideXml.includes("同一批黄金任务")) throw new Error("PPTX is missing golden-task bakeoff slide");
+if (!visibleSlideXml.includes("未跑")) throw new Error("PPTX bakeoff slide is missing unrun labeling");
 if (/(?:\.{3}|…)/u.test(visibleSlideXml)) throw new Error("PPTX visible copy still contains ellipsis truncation");
 if (!pptXml.includes('typeface="Microsoft YaHei"')) throw new Error("PPTX is missing Microsoft YaHei typography");
 if (/typeface="(?:Calibri|Calibri Light|\+mj-lt|\+mn-lt)"/.test(pptXml)) throw new Error("PPTX still contains a fallback Latin theme font");
@@ -49,6 +51,7 @@ if (!documentXml.includes("九维竞争评分")) throw new Error("DOCX is missin
 if (!documentXml.includes("三大数据系统")) throw new Error("DOCX is missing data-systems section");
 if (!documentXml.includes("机会执行卡")) throw new Error("DOCX is missing executable opportunity cards");
 if (!documentXml.includes("界面证据与实现口径")) throw new Error("DOCX is missing UI evidence and backend delivery chapter");
+if (!documentXml.includes("同一批黄金任务")) throw new Error("DOCX is missing golden-task bakeoff section");
 if (!documentXml.includes("从界面读出的商业逻辑")) throw new Error("DOCX is missing business-from-UI section");
 
 console.log(JSON.stringify({

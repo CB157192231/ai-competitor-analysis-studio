@@ -14,6 +14,7 @@ HTML 看板接受 UTF-8 JSON。顶层字段：
 - `opportunities[]`: `title/rationale/value/risk/impact/confidence/effort/horizon/metric/owner/resources[]/dependencies[]/experiment/successCriteria/nextStep/evidenceIds[]`
 - `roadmap`: `now[]/next[]/later[]`
 - `evidence[]`: `id/title/url/date/type/claim/confidence`
+- `bakeoff`: 黄金任务实测表。`tasks[]` 含 `id/name/job/materials/success/runs[]`；每个 run 含 `product/status/source/completed/interventions/timeToValueMinutes/deliverableUsable/recoveredFromFailure/cost/notes/evidenceIds[]`。`status` 为 `not_run|passed|partial|failed`，`source` 为 `unrun|measured|inferred`。没有实测时必须保持 `not_run`/`unrun`，禁止按官网或功能清单填 `passed`。`scorecard` 由本地工具汇总，模型不要自行编造已跑数量。
 - `limitations[]`
 - `audit`: 本地工具生成的证据覆盖、自动降级、无效引用和未引用证据审计；模型不要自行填写
 
@@ -51,4 +52,4 @@ HTML 看板接受 UTF-8 JSON。顶层字段：
 }
 ```
 
-`evidenceIds` 只能引用顶层 `evidence[]` 已存在的唯一 ID。工具会移除无效引用，把没有有效证据的维度评分和机会信心限制在 5，并把调整写入 `audit`。当前结构版本为 `1.2`。
+`evidenceIds` 只能引用顶层 `evidence[]` 已存在的唯一 ID。工具会移除无效引用，把没有有效证据的维度评分和机会信心限制在 5，并把调整写入 `audit`。当前结构版本为 `1.3`。
