@@ -112,7 +112,7 @@
       <section class="view" id="view-dashboard">
         <div id="dashboardEmpty" class="empty-state">
           <div class="empty-orbit"><span></span><i></i><b></b></div>
-          <h2>看板正在等待分析数据</h2><p>返回“分析任务”运行 DeepSeek，或载入演示案例。</p>
+          <h2>看板正在等待分析数据</h2><p>返回“分析任务”运行 DeepSeek，或载入演示案例。载入后，竞争看板最上方就是黄金任务对照表。</p>
           <button class="btn btn-dark" data-go="brief">开始定义任务</button>
         </div>
         <div id="dashboardContent" class="analysis-content hidden">
@@ -124,11 +124,11 @@
           <div class="research-band" id="researchBand"></div>
 
           <div class="viz-grid">
+            <article class="viz-card card-span-12"><div class="card-head"><div><p class="eyebrow">GOLDEN TASK BAKEOFF</p><h3>同一份工作对照表</h3></div><span>公开路径 ≠ 交差</span></div><p id="bakeoffSummary" class="bakeoff-lead"></p><div id="dashboardBakeoff" class="ui-bakeoff-wrap"></div></article>
             <article class="viz-card card-span-7"><div class="card-head"><div><p class="eyebrow">WEIGHTED SCORE</p><h3>竞争综合评分</h3></div><span>0–10</span></div><div id="scoreBars" class="score-bars"></div></article>
             <article class="viz-card card-span-5 dark-card"><div class="card-head"><div><p class="eyebrow">NORTH STAR</p><h3>共同的判断坐标</h3></div></div><strong class="northstar-value" id="northStar"></strong><p id="northStarWhy"></p><div id="guardrails" class="tag-list"></div></article>
             <article class="viz-card card-span-8"><div class="card-head"><div><p class="eyebrow">DIMENSION HEATMAP</p><h3>九维能力热力图</h3></div><span>分数可直接校正</span></div><div class="heatmap-wrap"><table class="heatmap" id="heatmap"></table></div></article>
             <article class="viz-card card-span-4"><div class="card-head"><div><p class="eyebrow">MARKET TIMING</p><h3>行业阶段</h3></div></div><div class="stage-value" id="marketStage"></div><p id="marketTrend"></p><div class="signal-list" id="marketSignals"></div></article>
-            <article class="viz-card card-span-12"><div class="card-head"><div><p class="eyebrow">GOLDEN TASK BAKEOFF</p><h3>同一份工作对照表</h3></div><span>公开路径 ≠ 交差</span></div><p id="bakeoffSummary" class="bakeoff-lead"></p><div id="dashboardBakeoff" class="ui-bakeoff-wrap"></div></article>
             <article class="viz-card card-span-12"><div class="card-head"><div><p class="eyebrow">POSITIONING MAP</p><h3>体验深度 × AI 能力</h3></div><span>气泡大小 = 市场匹配</span></div><div id="positionMap" class="position-map"></div></article>
             <article class="viz-card card-span-12"><div class="card-head"><div><p class="eyebrow">THREE ROCKETS</p><h3>商业效率三级火箭</h3></div></div><div class="rockets" id="rockets"></div></article>
           </div>
