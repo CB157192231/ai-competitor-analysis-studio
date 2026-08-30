@@ -152,6 +152,33 @@ test("user scenarios can add extra golden tasks up to eight", () => {
   assert.equal(bakeoff.tasks.some((item) => item.name === "超出上限的第四个场景"), false);
 });
 
+test("measured login-wall probes stay not_run after compileBakeoff", () => {
+  const bakeoff = compileBakeoff({
+    competitors: [{ name: "甲" }],
+    bakeoff: {
+      tasks: [{
+        id: "T02",
+        name: DEFAULT_GOLDEN_TASKS[1].name,
+        runs: [{
+          product: "甲",
+          status: "not_run",
+          source: "measured",
+          notes: "已打开官方网页版，停在登录墙。未跑。",
+          publicPath: { channel: "official_web", url: "https://example.com/app", stagesSeen: ["进入"], notes: "登录墙" },
+        }],
+      }],
+    },
+  });
+  const run = bakeoff.tasks.find((item) => item.id === "T02").runs[0];
+  assert.equal(run.status, "not_run");
+  assert.equal(run.source, "measured");
+  assert.match(run.notes, /登录墙/);
+  assert.equal(formatRunCell(run).title, "未跑");
+  assert.match(formatRunCell(run).detail, /登录墙/);
+  assert.equal(bakeoff.scorecard.ranTaskCount, 0);
+  assert.equal(bakeoff.scorecard.probedRunCount, 1);
+});
+
 test("analysis prompt requires a bakeoff scorecard and forbids inferred passes", () => {
   const prompt = buildAnalysisPrompt({ meta: { product: "Example" } });
   assert.match(prompt, /黄金任务|bakeoff/);
@@ -159,4 +186,5 @@ test("analysis prompt requires a bakeoff scorecard and forbids inferred passes",
   assert.match(prompt, /不要下载或安装/);
   assert.match(prompt, /公开路径/);
   assert.match(prompt, /publicPath/);
+  assert.match(prompt, /网页版实测|不要编造网页实测/);
 });

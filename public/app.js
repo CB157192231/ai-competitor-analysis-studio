@@ -659,8 +659,8 @@ async function runAnalysis() {
     }
     analyzing = true;
     loading(true, brief.autoResearch ? "正在联网调研与分析" : "正在进行七层分析", brief.autoResearch
-      ? "正在搜索公开资料。搜完后会写七层分析；已有工作台截图的产品不再打开官网。请不要重复点击「开始调研」。"
-      : "DeepSeek 正在组织需求、行业、AI 能力、数据、商业与决策证据。通常需要 30–120 秒。");
+      ? "搜完资料后会写七层分析，再打开各竞品官方网页版实测同一条带来源研究任务。登录墙或仅下载会标未跑。请不要重复点击「开始调研」。"
+      : "DeepSeek 正在组织需求、行业、AI 能力、数据、商业与决策证据。写完后会打开官方网页版实测同一条任务。");
     const payload = await api("/api/analyze", { method: "POST", body: JSON.stringify(brief) });
     setAnalysis(payload.analysis);
     setView("dashboard");

@@ -27,6 +27,7 @@ import {
 import { buildDocx, buildPptx } from "./office.mjs";
 import { listReportProjects, readReportProject, saveReport } from "./report-store.mjs";
 import { enrichVisualEvidence, knownAppUiFor } from "./visual-evidence.mjs";
+import { applyLiveWebBakeoff } from "./web-bakeoff.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const PUBLIC = path.join(ROOT, "public");
@@ -236,11 +237,11 @@ async function callDeepSeek(brief) {
       "DeepSeek 分析超过 180 秒，已安全取消；当前项目未被覆盖。",
       (signal) => postDeepSeek(chatEndpoint(runtimeConfig.baseUrl), requestBody, { signal }),
     );
-    const analysis = compileUiAuditFromScreens(await enrichVisualEvidence(pinCompetitorsToBrief(normalizeAnalysis(await withTimeout(
+    const analysis = await applyLiveWebBakeoff(compileUiAuditFromScreens(await enrichVisualEvidence(pinCompetitorsToBrief(normalizeAnalysis(await withTimeout(
       180000,
       "DeepSeek 正在修复损坏的分析 JSON，但仍超过 3 分钟。当前项目未被覆盖，请重试。",
       (signal) => parseModelJson(extractChatContent(envelope), signal),
-    )), brief), { assetsRoot: UI_ASSETS_ROOT }));
+    )), brief), { assetsRoot: UI_ASSETS_ROOT })));
     return {
       analysis,
       usage: envelope?.usage || null,
@@ -305,10 +306,10 @@ async function callDeepSeek(brief) {
     parsed.evidence = harvest.evidence;
   }
   console.warn("[analysis] report parsed, attaching UI evidence");
-  const analysis = compileUiAuditFromScreens(await enrichVisualEvidence(
+  const analysis = await applyLiveWebBakeoff(compileUiAuditFromScreens(await enrichVisualEvidence(
     await ensureUiSources(pinCompetitorsToBrief(normalizeAnalysis(applyHarvestUiEvidence(stampResearch(normalizeAnalysis(parsed), harvest, searchActions), harvest)), brief)),
     { assetsRoot: UI_ASSETS_ROOT },
-  ));
+  )));
   return {
     analysis,
     usage: analysisEnvelope?.usage || harvestEnvelope?.usage || null,

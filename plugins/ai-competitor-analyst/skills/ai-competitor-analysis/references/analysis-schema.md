@@ -14,7 +14,7 @@ HTML 看板接受 UTF-8 JSON。顶层字段：
 - `opportunities[]`: `title/rationale/value/risk/impact/confidence/effort/horizon/metric/owner/resources[]/dependencies[]/experiment/successCriteria/nextStep/evidenceIds[]`
 - `roadmap`: `now[]/next[]/later[]`
 - `evidence[]`: `id/title/url/date/type/claim/confidence`
-- `bakeoff`: 黄金任务对照表。`tasks[]` 含 `id/name/job/materials/success/runs[]`。每个 run 含 `product/status/source/publicPath/completed/interventions/timeToValueMinutes/deliverableUsable/recoveredFromFailure/cost/notes/evidenceIds[]`。`publicPath` 记录不装软件也能打开的公开操作路径（`channel`: `none|official_web|official_tutorial|video_walkthrough|secondary_walkthrough`，以及 `url/stagesSeen/notes`）。`status` 为 `not_run|passed|partial|failed`。没有本机/账号实测时必须保持 `not_run`/`unrun`；有公开路径也不能写成 `passed`。首页和功能清单不算路径。`scorecard` 由本地工具汇总。
+- `bakeoff`: 黄金任务对照表。`tasks[]` 含 `id/name/job/materials/success/runs[]`。每个 run 含 `product/status/source/publicPath/completed/interventions/timeToValueMinutes/deliverableUsable/recoveredFromFailure/cost/notes/evidenceIds[]`。`publicPath` 记录不装软件也能打开的公开操作路径（`channel`: `none|official_web|official_tutorial|video_walkthrough|secondary_walkthrough`，以及 `url/stagesSeen/notes`）。`status` 为 `not_run|passed|partial|failed`。`source=measured` 且 `status=not_run` 表示本地服务已经打开过官方网页版，但停在登录墙、仅下载或打开失败，格子仍是未跑。有公开路径也不能写成 `passed`。首页和功能清单不算交差。`scorecard` 由本地工具汇总。`research.webBakeoff` 记录每次调研时的网页探测结果。模型不得编造 measured 结果。
 - `limitations[]`
 - `audit`: 本地工具生成的证据覆盖、自动降级、无效引用和未引用证据审计；模型不要自行填写
 

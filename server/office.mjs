@@ -2082,7 +2082,7 @@ export async function buildPptx(rawAnalysis) {
     const tasks = (bakeoff.tasks || []).slice(0, 6);
     const products = [...new Set((bakeoff.tasks || []).flatMap((task) => (task.runs || []).map((run) => run.product)))].filter(Boolean).slice(0, 3);
     const scorecard = bakeoff.scorecard || {};
-    addTitle(slide, "同一批黄金任务，实际跑过没有", "不装软件：先核验网页版/教程/视频路径。没有实测的格子写未跑，公开路径不能填通过");
+    addTitle(slide, "同一批黄金任务，实际跑过没有", "每次调研打开网页版实测同一条任务。登录墙或仅下载写未跑，公开路径不能填通过");
     const names = products.length ? products : firstCompetitors.map((item) => item.name).slice(0, 3);
     const rows = tasks.length ? tasks : [{ id: "T01", name: "待建立黄金任务", success: "事先写清交差标准", runs: [] }];
     const colW = Math.min(280, Math.floor(900 / Math.max(1, names.length)));
